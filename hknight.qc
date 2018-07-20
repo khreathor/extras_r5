@@ -396,6 +396,38 @@ void() hknight_melee =
 	}
 };
 
+
+/*
+=======================================================
+hell_knight_spawn
+
+(khreathor)
+Monster spawn function, used to trigger spawn an enemy.
+For more info and options see monsters.qc
+=======================================================
+*/
+void() hell_knight_spawn =
+{
+	self.solid = SOLID_SLIDEBOX;
+	self.movetype = MOVETYPE_STEP;
+
+	self.headmdl = "progs/h_hellkn.mdl";// pOx - Corpse
+	setmodel (self, "progs/hknight.mdl");
+
+	setsize (self, '-16 -16 -24', '16 16 40');
+	self.health = 250;
+
+	self.th_stand = hknight_stand1;
+	self.th_walk = hknight_walk1;
+	self.th_run = hknight_run1;
+	self.th_melee = hknight_melee;
+	self.th_missile = hknight_magicc1;
+	self.th_pain = hknight_pain;
+	self.th_die = hknight_die;
+	
+	walkmonster_start ();
+};
+
 /*QUAKED monster_hell_knight (1 0 0) (-16 -16 -24) (16 16 40) Ambush
 */
 void() monster_hell_knight =
@@ -422,22 +454,16 @@ void() monster_hell_knight =
 	precache_sound ("knight/sword1.wav");
 	precache_sound ("knight/sword2.wav");
 	
-	self.solid = SOLID_SLIDEBOX;
-	self.movetype = MOVETYPE_STEP;
+	self.health = 1;
+	increase_monster_count ();
 	
-	self.headmdl = "progs/h_hellkn.mdl";// pOx - Corpse
-	setmodel (self, "progs/hknight.mdl");
-
-	setsize (self, '-16 -16 -24', '16 16 40');
-	self.health = 250;
-
-	self.th_stand = hknight_stand1;
-	self.th_walk = hknight_walk1;
-	self.th_run = hknight_run1;
-	self.th_melee = hknight_melee;
-	self.th_missile = hknight_magicc1;
-	self.th_pain = hknight_pain;
-	self.th_die = hknight_die;
-	
-	walkmonster_start ();
+	if (self.spawnflags & INITIALIZE_ONLY)
+	{
+		self.spawnfunc = hell_knight_spawn;
+		walkmonster_initialize_only ();		/// Only initialize, don't spawn (khreathor)
+	}
+	else
+	{
+		hell_knight_spawn();		/// Spawn enemy (khreathor)
+	}
 };

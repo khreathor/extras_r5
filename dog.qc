@@ -201,7 +201,7 @@ void() dog_painb14	=[	$painb14 ,	dog_painb15	] {};
 void() dog_painb15	=[	$painb15 ,	dog_painb16	] {};
 void() dog_painb16	=[	$painb16 ,	dog_run1	] {};
 
-void() dog_pain =
+void(entity attacker, float damage) dog_pain =
 {
 	sound (self, CHAN_VOICE, "dog/dpain1.wav", 1, ATTN_NORM);
 
@@ -312,8 +312,6 @@ float()	CheckDogJump =
 
 float()	DogCheckAttack =
 {
-	local	vector	vec;
-	
 // if close enough for slashing, go for it
 	if (CheckDogMelee ())
 	{
@@ -330,6 +328,37 @@ float()	DogCheckAttack =
 	return FALSE;
 };
 
+
+/*
+=======================================================
+dog_spawn
+
+(khreathor)
+Monster spawn function, used to trigger spawn an enemy.
+For more info and options see monsters.qc
+=======================================================
+*/
+void() dog_spawn =
+{
+	self.solid = SOLID_SLIDEBOX;
+	self.movetype = MOVETYPE_STEP;
+
+	self.headmdl = "progs/h_dog.mdl";// pOx - Corpse
+	setmodel (self, "progs/dog.mdl");
+
+	setsize (self, '-32 -32 -24', '32 32 40');
+	self.health = 25;
+
+	self.th_stand = dog_stand1;
+	self.th_walk = dog_walk1;
+	self.th_run = dog_run1;
+	self.th_pain = dog_pain;
+	self.th_die = dog_die;
+	self.th_melee = dog_atta1;
+	self.th_missile = dog_leap1;
+
+	walkmonster_start();
+};
 
 //===========================================================================
 
@@ -352,22 +381,16 @@ void() monster_dog =
 	precache_sound ("dog/dsight.wav");
 	precache_sound ("dog/idle.wav");
 
-	self.solid = SOLID_SLIDEBOX;
-	self.movetype = MOVETYPE_STEP;
+	self.health = 1;
+	increase_monster_count ();
 	
-	self.headmdl = "progs/h_dog.mdl";// pOx - Corpse
-	setmodel (self, "progs/dog.mdl");
-
-	setsize (self, '-32 -32 -24', '32 32 40');
-	self.health = 25;
-
-	self.th_stand = dog_stand1;
-	self.th_walk = dog_walk1;
-	self.th_run = dog_run1;
-	self.th_pain = dog_pain;
-	self.th_die = dog_die;
-	self.th_melee = dog_atta1;
-	self.th_missile = dog_leap1;
-
-	walkmonster_start();
+	if (self.spawnflags & INITIALIZE_ONLY)
+	{
+		self.spawnfunc = dog_spawn;
+		walkmonster_initialize_only ();		/// Only initialize, don't spawn (khreathor)
+	}
+	else
+	{
+		dog_spawn();		/// Spawn enemy (khreathor)
+	}
 };

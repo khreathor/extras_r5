@@ -91,7 +91,7 @@ OgreFireGrenade
 */
 void() OgreFireGrenade =
 {
-	local	entity missile, mpuff;
+	local	entity missile;
 	
 	self.effects = self.effects | EF_MUZZLEFLASH;
 
@@ -421,8 +421,38 @@ void() ogre_melee =
 };
 
 
-/*QUAKED monster_ogre (1 0 0) (-32 -32 -24) (32 32 64) Ambush
+/*
+=======================================================
+ogre_spawn
 
+(khreathor)
+Monster spawn function, used to trigger spawn an enemy.
+For more info and options see monsters.qc
+=======================================================
+*/
+void() ogre_spawn =
+{
+	self.solid = SOLID_SLIDEBOX;
+	self.movetype = MOVETYPE_STEP;
+
+	setmodel (self, "progs/ogre.mdl");
+
+	self.headmdl = "progs/h_ogre.mdl";// pOx - Corpse
+	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
+	self.health = 200;
+
+	self.th_stand = ogre_stand1;
+	self.th_walk = ogre_walk1;
+	self.th_run = ogre_run1;
+	self.th_die = ogre_die;
+	self.th_melee = ogre_melee;
+	self.th_missile = ogre_nail1;
+	self.th_pain = ogre_pain;
+	
+	walkmonster_start();
+};
+
+/*QUAKED monster_ogre (1 0 0) (-32 -32 -24) (32 32 64) Ambush
 */
 void() monster_ogre =
 {
@@ -443,24 +473,18 @@ void() monster_ogre =
 	precache_sound ("ogre/ogsawatk.wav");
 	precache_sound ("ogre/ogwake.wav");
 
-	self.solid = SOLID_SLIDEBOX;
-	self.movetype = MOVETYPE_STEP;
+	self.health = 1;
+	increase_monster_count ();
 	
-	self.headmdl = "progs/h_ogre.mdl";// pOx - Corpse
-	setmodel (self, "progs/ogre.mdl");
-
-	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
-	self.health = 200;
-
-	self.th_stand = ogre_stand1;
-	self.th_walk = ogre_walk1;
-	self.th_run = ogre_run1;
-	self.th_die = ogre_die;
-	self.th_melee = ogre_melee;
-	self.th_missile = ogre_nail1;
-	self.th_pain = ogre_pain;
-	
-	walkmonster_start();
+	if (self.spawnflags & INITIALIZE_ONLY)
+	{
+		self.spawnfunc = ogre_spawn;
+		walkmonster_initialize_only ();		/// Only initialize, don't spawn (khreathor)
+	}
+	else
+	{
+		ogre_spawn();		/// Spawn enemy (khreathor)
+	}
 };
 
 void() monster_ogre_marksman =

@@ -334,7 +334,10 @@ void() tdeath_touch =
 		
 	}
 
-	if (other.health)
+	///	Additional check to see if enemy was spawned (other.spawned)
+	///	This way we avoid gibbing of not fully spawned enemies,
+	///	which was causing problems and weir behavior
+	if (other.health && other.spawned)
 	{
 		T_Damage (other, self, self, 50000);
 	}

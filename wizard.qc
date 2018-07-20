@@ -381,6 +381,37 @@ void() Wiz_Missile =
 	wiz_fast1();
 };
 
+
+/*
+=======================================================
+wizard_spawn
+
+(khreathor)
+Monster spawn function, used to trigger spawn an enemy.
+For more info and options see monsters.qc
+=======================================================
+*/
+void() wizard_spawn =
+{
+	self.solid = SOLID_SLIDEBOX;
+	self.movetype = MOVETYPE_STEP;
+
+	self.headmdl = "progs/h_wizard.mdl";// pOx - Corpse
+	setmodel (self, "progs/wizard.mdl");
+
+	setsize (self, '-16 -16 -24', '16 16 40');
+	self.health = 80;
+
+	self.th_stand = wiz_stand1;
+	self.th_walk = wiz_walk1;
+	self.th_run = wiz_run1;
+	self.th_missile = Wiz_Missile;
+	self.th_pain = Wiz_Pain;
+	self.th_die = wiz_die;
+		
+	flymonster_start ();
+};
+
 /*QUAKED monster_wizard (1 0 0) (-16 -16 -24) (16 16 40) Ambush
 */
 void() monster_wizard =
@@ -402,21 +433,16 @@ void() monster_wizard =
 	precache_sound ("wizard/wpain.wav");
 	precache_sound ("wizard/wsight.wav");
 
-	self.solid = SOLID_SLIDEBOX;
-	self.movetype = MOVETYPE_STEP;
+	self.health = 1;
+	increase_monster_count ();
 	
-	self.headmdl = "progs/h_wizard.mdl";// pOx - Corpse
-	setmodel (self, "progs/wizard.mdl");
-
-	setsize (self, '-16 -16 -24', '16 16 40');
-	self.health = 80;
-
-	self.th_stand = wiz_stand1;
-	self.th_walk = wiz_walk1;
-	self.th_run = wiz_run1;
-	self.th_missile = Wiz_Missile;
-	self.th_pain = Wiz_Pain;
-	self.th_die = wiz_die;
-		
-	flymonster_start ();
+	if (self.spawnflags & INITIALIZE_ONLY)
+	{
+		self.spawnfunc = wizard_spawn;
+		flymonster_initialize_only ();		/// Only initialize, don't spawn (khreathor)
+	}
+	else
+	{
+		wizard_spawn();		/// Spawn enemy (khreathor)
+	}
 };

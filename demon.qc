@@ -175,6 +175,37 @@ void() Demon_MeleeAttack =
 };
 
 
+/*
+=======================================================
+demon1_spawn
+
+(khreathor)
+Monster spawn function, used to trigger spawn an enemy.
+For more info and options see monsters.qc
+=======================================================
+*/
+void() demon1_spawn =
+{
+	self.solid = SOLID_SLIDEBOX;
+	self.movetype = MOVETYPE_STEP;
+
+	self.headmdl = "progs/h_demon.mdl";// pOx - Corpse
+	setmodel (self, "progs/demon.mdl");
+
+	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
+	self.health = 300;
+
+	self.th_stand = demon1_stand1;
+	self.th_walk = demon1_walk1;
+	self.th_run = demon1_run1;
+	self.th_die = demon_die;
+	self.th_melee = Demon_MeleeAttack;		// one of two attacks
+	self.th_missile = demon1_jump1;			// jump attack
+	self.th_pain = demon1_pain;
+		
+	walkmonster_start();
+};
+
 /*QUAKED monster_demon1 (1 0 0) (-32 -32 -24) (32 32 64) Ambush
 
 */
@@ -195,24 +226,18 @@ void() monster_demon1 =
 	precache_sound ("demon/idle1.wav");
 	precache_sound ("demon/sight2.wav");
 
-	self.solid = SOLID_SLIDEBOX;
-	self.movetype = MOVETYPE_STEP;
+	self.health = 1;
+	increase_monster_count ();
 	
-	self.headmdl = "progs/h_demon.mdl";// pOx - Corpse
-	setmodel (self, "progs/demon.mdl");
-
-	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
-	self.health = 300;
-
-	self.th_stand = demon1_stand1;
-	self.th_walk = demon1_walk1;
-	self.th_run = demon1_run1;
-	self.th_die = demon_die;
-	self.th_melee = Demon_MeleeAttack;		// one of two attacks
-	self.th_missile = demon1_jump1;			// jump attack
-	self.th_pain = demon1_pain;
-		
-	walkmonster_start();
+	if (self.spawnflags & INITIALIZE_ONLY)
+	{
+		self.spawnfunc = demon1_spawn;
+		walkmonster_initialize_only ();		/// Only initialize, don't spawn (khreathor)
+	}
+	else
+	{
+		demon1_spawn();		/// Spawn enemy (khreathor)
+	}
 };
 
 
@@ -279,8 +304,6 @@ float()	CheckDemonJump =
 
 float()	DemonCheckAttack =
 {
-	local	vector	vec;
-	
 // if close enough for slashing, go for it
 	if (CheckDemonMelee ())
 	{
@@ -344,16 +367,17 @@ void()	Demon_JumpTouch =
 	if (!checkbottom(self))
 	{
 		if (self.flags & FL_ONGROUND)
-		{	// jump randomly to not get hung up
-//dprint ("popjump\n");
-	self.touch = SUB_Null;
-	self.think = demon1_jump1;
-	self.nextthink = time + 0.1;
+		{	
+			// jump randomly to not get hung up
+			//dprint ("popjump\n");
+			self.touch = SUB_Null;
+			self.think = demon1_jump1;
+			self.nextthink = time + 0.1;
 
-//			self.velocity_x = (random() - 0.5) * 600;
-//			self.velocity_y = (random() - 0.5) * 600;
-//			self.velocity_z = 200;
-//			self.flags = self.flags - FL_ONGROUND;
+			//	self.velocity_x = (random() - 0.5) * 600;
+			//	self.velocity_y = (random() - 0.5) * 600;
+			//	self.velocity_z = 200;
+			//	self.flags = self.flags - FL_ONGROUND;
 		}
 		return;	// not on ground yet
 	}

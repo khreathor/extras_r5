@@ -18,7 +18,7 @@ $frame swim18
 $frame pain1 pain2 pain3 pain4 pain5 pain6 pain7 pain8 
 $frame pain9 
 
-void() swimmonster_start;
+//void() swimmonster_start;
 
 void() f_stand1  =[      $swim1, f_stand2 ] {ai_stand();};
 void() f_stand2  =[      $swim2, f_stand3 ] {ai_stand();};
@@ -178,24 +178,21 @@ void() f_die =
 };
 // 1998-08-09 Gibbable fishes by Maddes/Athos  end
 
-/*QUAKED monster_fish (1 0 0) (-16 -16 -24) (16 16 24) Ambush
+
+/*
+=======================================================
+fish_spawn
+
+(khreathor)
+Monster spawn function, used to trigger spawn an enemy.
+For more info and options see monsters.qc
+=======================================================
 */
-void() monster_fish =
+void() fish_spawn =
 {
-	if (deathmatch)
-	{
-		remove(self);
-		return;
-	}
-	precache_model2 ("progs/fish.mdl");
-
-	precache_sound2 ("fish/death.wav");
-	precache_sound2 ("fish/bite.wav");
-	precache_sound2 ("fish/idle.wav");
-
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;
-	
+
 	self.headmdl = "progs/gib3.mdl";// pOx - Corpse (match gib from URQP fix)
 	setmodel (self, "progs/fish.mdl");
 
@@ -213,5 +210,34 @@ void() monster_fish =
 	self.th_melee = f_attack1;
 	
 	swimmonster_start ();
+}
+
+/*QUAKED monster_fish (1 0 0) (-16 -16 -24) (16 16 24) Ambush
+*/
+void() monster_fish =
+{
+	if (deathmatch)
+	{
+		remove(self);
+		return;
+	}
+	precache_model2 ("progs/fish.mdl");
+
+	precache_sound2 ("fish/death.wav");
+	precache_sound2 ("fish/bite.wav");
+	precache_sound2 ("fish/idle.wav");
+
+	self.health = 1;
+	increase_monster_count ();
+	
+	if (self.spawnflags & INITIALIZE_ONLY)
+	{
+		self.spawnfunc = fish_spawn;
+		swimmonster_initialize_only ();		/// Only initialize, don't spawn (khreathor)
+	}
+	else
+	{
+		fish_spawn();		/// Spawn enemy (khreathor)
+	}
 };
 

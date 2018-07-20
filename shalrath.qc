@@ -21,7 +21,7 @@ $frame death1 death2 death3 death4 death5 death6 death7
 $frame	walk1 walk2 walk3 walk4 walk5 walk6 walk7 walk8 walk9 walk10
 $frame	walk11 walk12
 
-void() shalrath_pain;
+void(entity attacker, float damage) shalrath_pain;
 void() ShalMissile;
 void() shal_stand     =[      $walk1,       shal_stand    ] {ai_stand();};
 
@@ -87,7 +87,7 @@ void() shal_death6      =[      $death6,        shal_death7     ] {};
 void() shal_death7      =[      $death7,        shal_death7    ] {};
 
 
-void() shalrath_pain =
+void(entity attacker, float damage) shalrath_pain =
 {
 	if (self.pain_finished > time)
 		return;
@@ -202,6 +202,38 @@ void() ShalMissileTouch =
 
 //=================================================================
 
+
+/*
+=======================================================
+shalrath_spawn
+
+(khreathor)
+Monster spawn function, used to trigger spawn an enemy.
+For more info and options see monsters.qc
+=======================================================
+*/
+void() shalrath_spawn = 
+{
+	self.solid = SOLID_SLIDEBOX;
+	self.movetype = MOVETYPE_STEP;
+	
+	self.headmdl = "progs/h_shal.mdl";// pOx - Corpse
+	setmodel (self, "progs/shalrath.mdl");
+	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
+	self.health = 400;
+
+	self.th_stand = shal_stand;
+	self.th_walk = shal_walk1;
+	self.th_run = shal_run1;
+	self.th_die = shalrath_die;
+	self.th_pain = shalrath_pain;
+	self.th_missile = shal_attack1;
+
+	walkmonster_start();
+	//self.think = walkmonster_start;
+	//self.nextthink = time + 0.1 + random ()*0.1;
+};
+
 /*QUAKED monster_shalrath (1 0 0) (-32 -32 -24) (32 32 48) Ambush
 */
 void() monster_shalrath =
@@ -222,22 +254,16 @@ void() monster_shalrath =
 	precache_sound2 ("shalrath/pain.wav");
 	precache_sound2 ("shalrath/sight.wav");
 	
-	self.solid = SOLID_SLIDEBOX;
-	self.movetype = MOVETYPE_STEP;
+	self.health = 1;
+	increase_monster_count ();
 	
-	self.headmdl = "progs/h_shal.mdl";// pOx - Corpse
-	setmodel (self, "progs/shalrath.mdl");
-	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
-	self.health = 400;
-
-	self.th_stand = shal_stand;
-	self.th_walk = shal_walk1;
-	self.th_run = shal_run1;
-	self.th_die = shalrath_die;
-	self.th_pain = shalrath_pain;
-	self.th_missile = shal_attack1;
-
-	self.think = walkmonster_start;
-	self.nextthink = time + 0.1 + random ()*0.1;	
-
+	if (self.spawnflags & INITIALIZE_ONLY)
+	{
+		self.spawnfunc = shalrath_spawn;
+		walkmonster_initialize_only ();		/// Only initialize, don't spawn (khreathor)
+	}
+	else
+	{
+		shalrath_spawn();		/// Spawn enemy (khreathor)
+	}
 };

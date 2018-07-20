@@ -337,6 +337,37 @@ void() sham_die =
 //============================================================================
 
 
+/*
+=======================================================
+shambler_spawn
+
+(khreathor)
+Monster spawn function, used to trigger spawn an enemy.
+For more info and options see monsters.qc
+=======================================================
+*/
+void() shambler_spawn = 
+{
+	self.solid = SOLID_SLIDEBOX;
+	self.movetype = MOVETYPE_STEP;
+	
+	self.headmdl = "progs/h_shams.mdl";// pOx - Corpse
+	setmodel (self, "progs/shambler.mdl");
+
+	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
+	self.health = 600;
+
+	self.th_stand = sham_stand1;
+	self.th_walk = sham_walk1;
+	self.th_run = sham_run1;
+	self.th_die = sham_die;
+	self.th_melee = sham_melee;
+	self.th_missile = sham_magic1;
+	self.th_pain = sham_pain;
+	
+	walkmonster_start();
+};
+
 /*QUAKED monster_shambler (1 0 0) (-32 -32 -24) (32 32 64) Ambush
 */
 void() monster_shambler =
@@ -361,22 +392,16 @@ void() monster_shambler =
 	precache_sound ("shambler/melee2.wav");
 	precache_sound ("shambler/smack.wav");
 
-	self.solid = SOLID_SLIDEBOX;
-	self.movetype = MOVETYPE_STEP;
+	self.health = 1;
+	increase_monster_count ();
 	
-	self.headmdl = "progs/h_shams.mdl";// pOx - Corpse
-	setmodel (self, "progs/shambler.mdl");
-
-	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
-	self.health = 600;
-
-	self.th_stand = sham_stand1;
-	self.th_walk = sham_walk1;
-	self.th_run = sham_run1;
-	self.th_die = sham_die;
-	self.th_melee = sham_melee;
-	self.th_missile = sham_magic1;
-	self.th_pain = sham_pain;
-	
-	walkmonster_start();
+	if (self.spawnflags & INITIALIZE_ONLY)
+	{
+		self.spawnfunc = shambler_spawn;
+		walkmonster_initialize_only ();		/// Only initialize, don't spawn (khreathor)
+	}
+	else
+	{
+		shambler_spawn();		/// Spawn enemy (khreathor)
+	}
 };

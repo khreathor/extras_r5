@@ -227,6 +227,11 @@ void		end_sys_fields;			// flag for structure dumping
 float	FALSE					= 0;
 float 	TRUE					= 1;
 
+///	Spawn flags (khreathor)
+float IS_NOTSPAWNED		= 0;		// Used to check if enemies are spawned
+float IS_SPAWNED		= 1;		// Used to check if enemies are spawned
+float IS_INITIALIZED	= 2;		// Used to check if enemies are spawned
+
 // edict.flags
 float	FL_FLY					= 1;
 float	FL_SWIM					= 2;
@@ -509,7 +514,8 @@ float	AS_MISSILE		= 4;
 //
 .float 		pausetime;
 .entity 	movetarget;
-
+.void()		spawnfunc;		// Enemy spawn function (khreathor)
+.float 		spawned;		// Stores spawn state (khreathor)
 
 //
 // doors

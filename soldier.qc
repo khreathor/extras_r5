@@ -242,6 +242,36 @@ void() army_die =
 };
 
 
+/*
+=======================================================
+army_spawn
+
+(khreathor)
+Monster spawn function, used to trigger spawn an enemy.
+For more info and options see monsters.qc
+=======================================================
+*/
+void() army_spawn =
+{
+	self.solid = SOLID_SLIDEBOX;
+	self.movetype = MOVETYPE_STEP;
+	
+	self.headmdl = "progs/h_guard.mdl";// pOx - Corpse
+	setmodel (self, "progs/soldier.mdl");
+
+	setsize (self, '-16 -16 -24', '16 16 40');
+	self.health = 30;
+
+	self.th_stand = army_stand1;
+	self.th_walk = army_walk1;
+	self.th_run = army_run1;
+	self.th_missile = army_atk1;
+	self.th_pain = army_pain;
+	self.th_die = army_die;
+	
+	walkmonster_start ();
+};
+
 /*QUAKED monster_army (1 0 0) (-16 -16 -24) (16 16 40) Ambush
 */
 void() monster_army =
@@ -265,22 +295,17 @@ void() monster_army =
 	precache_sound ("soldier/sight1.wav");
 
 	precache_sound ("player/udeath.wav");		// gib death
-
-	self.solid = SOLID_SLIDEBOX;
-	self.movetype = MOVETYPE_STEP;
 	
-	self.headmdl = "progs/h_guard.mdl";// pOx - Corpse
-	setmodel (self, "progs/soldier.mdl");
-
-	setsize (self, '-16 -16 -24', '16 16 40');
-	self.health = 30;
-
-	self.th_stand = army_stand1;
-	self.th_walk = army_walk1;
-	self.th_run = army_run1;
-	self.th_missile = army_atk1;
-	self.th_pain = army_pain;
-	self.th_die = army_die;
-
-	walkmonster_start ();
+	self.health = 1;
+	increase_monster_count ();
+	
+	if (self.spawnflags & INITIALIZE_ONLY)
+	{
+		self.spawnfunc = army_spawn;
+		walkmonster_initialize_only ();		/// Only initialize, don't spawn (khreathor)
+	}
+	else
+	{
+		army_spawn();		/// Spawn enemy (khreathor)
+	}
 };

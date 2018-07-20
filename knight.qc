@@ -234,6 +234,36 @@ void() knight_die =
 };
 
 
+/*
+=======================================================
+knight_spawn
+
+(khreathor)
+Monster spawn function, used to trigger spawn an enemy.
+For more info and options see monsters.qc
+=======================================================
+*/
+void() knight_spawn =
+{
+	self.solid = SOLID_SLIDEBOX;
+	self.movetype = MOVETYPE_STEP;
+
+	self.headmdl = "progs/h_knight.mdl";// pOx - Corpse
+	setmodel (self, "progs/knight.mdl");
+
+	setsize (self, '-16 -16 -24', '16 16 40');
+	self.health = 75;
+
+	self.th_stand = knight_stand1;
+	self.th_walk = knight_walk1;
+	self.th_run = knight_run1;
+	self.th_melee = knight_atk1;
+	self.th_pain = knight_pain;
+	self.th_die = knight_die;
+	
+	walkmonster_start ();
+};
+
 /*QUAKED monster_knight (1 0 0) (-16 -16 -24) (16 16 40) Ambush
 */
 void() monster_knight =
@@ -253,21 +283,16 @@ void() monster_knight =
 	precache_sound ("knight/sword2.wav");
 	precache_sound ("knight/idle.wav");
 
-	self.solid = SOLID_SLIDEBOX;
-	self.movetype = MOVETYPE_STEP;
+	self.health = 1;
+	increase_monster_count ();
 	
-	self.headmdl = "progs/h_knight.mdl";// pOx - Corpse
-	setmodel (self, "progs/knight.mdl");
-
-	setsize (self, '-16 -16 -24', '16 16 40');
-	self.health = 75;
-
-	self.th_stand = knight_stand1;
-	self.th_walk = knight_walk1;
-	self.th_run = knight_run1;
-	self.th_melee = knight_atk1;
-	self.th_pain = knight_pain;
-	self.th_die = knight_die;
-	
-	walkmonster_start ();
+	if (self.spawnflags & INITIALIZE_ONLY)
+	{
+		self.spawnfunc = knight_spawn;
+		walkmonster_initialize_only ();		/// Only initialize, don't spawn (khreathor)
+	}
+	else
+	{
+		knight_spawn();		/// Spawn enemy (khreathor)
+	}
 };

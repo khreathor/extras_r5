@@ -161,7 +161,7 @@ ZombieFireGrenade
 */
 void(vector st) ZombieFireGrenade =
 {
-	local	entity missile, mpuff;
+	local	entity missile;
 	local	vector	org;
 
 	sound (self, CHAN_WEAPON, "zombie/z_shot1.wav", 1, ATTN_NORM);
@@ -463,6 +463,36 @@ void(entity attacker, float take) zombie_pain =
 
 //============================================================================
 
+
+/*
+=======================================================
+zombie_spawn
+
+(khreathor)
+Monster spawn function, used to trigger spawn an enemy.
+For more info and options see monsters.qc
+=======================================================
+*/
+void() zombie_spawn =
+{
+	self.solid = SOLID_SLIDEBOX;
+	self.movetype = MOVETYPE_STEP;
+
+	setmodel (self, "progs/zombie.mdl");
+
+	setsize (self, '-16 -16 -24', '16 16 40');
+	self.health = 60;
+
+	self.th_stand = zombie_stand1;
+	self.th_walk = zombie_walk1;
+	self.th_run = zombie_run1;
+	self.th_pain = zombie_pain;
+	self.th_die = zombie_die;
+	self.th_missile = zombie_missile;
+	
+	walkmonster_start();
+};
+
 /*QUAKED monster_zombie (1 0 0) (-16 -16 -24) (16 16 32) Crucified ambush
 
 If crucified, stick the bounding box 12 pixels back into a wall to look right.
@@ -490,26 +520,28 @@ void() monster_zombie =
 	precache_sound ("zombie/z_hit.wav");
 	precache_sound ("zombie/idle_w2.wav");
 
-	self.solid = SOLID_SLIDEBOX;
-	self.movetype = MOVETYPE_STEP;
-
-	setmodel (self, "progs/zombie.mdl");
-
-	setsize (self, '-16 -16 -24', '16 16 40');
-	self.health = 60;
-
-	self.th_stand = zombie_stand1;
-	self.th_walk = zombie_walk1;
-	self.th_run = zombie_run1;
-	self.th_pain = zombie_pain;
-	self.th_die = zombie_die;
-	self.th_missile = zombie_missile;
-
 	if (self.spawnflags & SPAWN_CRUCIFIED)
 	{
+		self.solid = SOLID_SLIDEBOX;
 		self.movetype = MOVETYPE_NONE;
+		setmodel (self, "progs/zombie.mdl");
+		setsize (self, '-16 -16 -24', '16 16 40');
+		self.health = 60;
 		zombie_cruc1 ();
 	}
 	else
-		walkmonster_start();
+	{
+		self.health = 1;
+		increase_monster_count ();
+		
+		if (self.spawnflags & INITIALIZE_ONLY)
+		{
+			self.spawnfunc = zombie_spawn;
+			walkmonster_initialize_only ();		/// Only initialize, don't spawn (khreathor)
+		}
+		else
+		{
+			zombie_spawn();		/// Spawn enemy (khreathor)
+		}
+	}
 };
