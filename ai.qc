@@ -681,8 +681,10 @@ void(float dist) ai_run =
 	local	float	direct, ang_rint, ang_floor, ang_ceil;
 	
 	movedist = dist;
-// see if the enemy is dead
-	if (self.enemy.health <= 0)
+	
+	// see if the enemy is dead
+	// corpse check added, to stop self.enemy from being stuck on corpses (khreathor)
+	if (self.enemy.health <= 0 || self.enemy.classname == "monster_corpse")
 	{
 		self.enemy = world;
 	// FIXME: look all around for other targets
