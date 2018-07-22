@@ -42,6 +42,7 @@ void() corpse_touch =
 		if ((!other.flags & FL_ONGROUND))
 			other.flags = other.flags + FL_ONGROUND;
 
+		/*
 		// if the corpse is on a ledge, or in mid-air, gib it to prevent hang-ups
 		if (!checkbottom(self) || (other.absmin_z + 4 < self.absmin_z))
 			T_Damage (self, other, other, 22);
@@ -54,8 +55,16 @@ void() corpse_touch =
 			T_Damage (self, other, other, 1);
 			self.attack_finished = time + 1.0;// Only allow 1 step per second to hurt
 		}
+		*/
 	}
 };
+
+void() GibIfInAirForTooLong =
+{
+	if (!checkbottom(self))
+		T_Damage (self, other, other, 22);
+	self.think = SUB_Null;
+}
 
 void() corpse_die =
 {
@@ -79,7 +88,7 @@ void() become_corpse =
 {
 	self.health = 20;
 		
-	self.takedamage = DAMAGE_AIM;
+	self.takedamage = DAMAGE_YES;
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;
 	self.flags = self.flags & (!FL_MONSTER);
@@ -107,6 +116,12 @@ void() become_corpse =
 	self.th_die = corpse_die;
 	self.touch = corpse_touch;
 	self.attack_finished = time;
+	
+	if(self.flags & FL_FLY)
+	{
+		self.think = GibIfInAirForTooLong;
+		self.nextthink = time + 4;
+	}
 }
 
 //============================================================================
