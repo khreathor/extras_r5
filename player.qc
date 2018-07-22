@@ -179,6 +179,7 @@ void()	player_run =[	$rockrun1,	player_run	]
 			else if (r < 0.75)
 				sound (self, CHAN_AUTO, "misc/owater2.wav", 0.75, ATTN_NORM);
    		}
+		/*
    		 else if (self.flags & FL_ONGROUND)
     	{
 			if (r < 0.25)
@@ -190,6 +191,7 @@ void()	player_run =[	$rockrun1,	player_run	]
 			else
 				sound (self, CHAN_AUTO, "misc/foot4.wav", 0.75, ATTN_STATIC);
    		}
+		*/
 	}
 	// pOx - END - Footstep/Swim sounds
 	
