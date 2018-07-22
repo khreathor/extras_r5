@@ -1,17 +1,29 @@
 void() W_SetCurrentAmmo;
+void (vector org) spawn_tfog;
 /* ALL LIGHTS SHOULD BE 0 1 0 IN COLOR ALL OTHER ITEMS SHOULD
 BE .8 .3 .4 IN COLOR */
 
+float	I_SPAWN_PARTICLES = 16;
+float	I_RANDOM_POS = 32;
+float	I_REGEN_SILENT = 64;
+float	I_HIDE_MODEL = 128;
+
+.vector particles_offset;
 
 void() SUB_regen =
 {
 	self.model = self.mdl;		// restore original model
 	self.solid = SOLID_TRIGGER;	// allow it to be touched again
-	sound (self, CHAN_VOICE, "items/itembk2.wav", 1, ATTN_NORM);	// play respawn sound
+	if (self.spawnflags & I_SPAWN_PARTICLES)
+	{
+		spawn_tfog (self.origin + self.particles_offset);
+	}
+	if (!(self.spawnflags & I_REGEN_SILENT))
+	{
+		sound (self, CHAN_VOICE, "items/itembk2.wav", 1, ATTN_NORM);	// play respawn sound
+	}
 	setorigin (self, self.origin);
 };
-
-
 
 /*QUAKED noclass (0 0 0) (-8 -8 -8) (8 8 8)
 prints a warning message when spawned
@@ -23,8 +35,6 @@ void() noclass =
 	dprint ("\n");
 	remove (self);
 };
-
-
 
 /*
 ============
@@ -44,13 +54,26 @@ void() PlaceItem =
 	self.velocity = '0 0 0';
 	self.origin_z = self.origin_z + 6;
 	oldz = self.origin_z;
-	if (!droptofloor(0,0))// pOx - shut up compiler warning (0,0)
+	
+	if(!self.targetname || self.targetname == "")
 	{
-		dprint ("Bonus item fell out of level at ");
-		dprint (vtos(self.origin));
-		dprint ("\n");
-		remove(self);
-		return;
+		if (!droptofloor(0,0))// pOx - shut up compiler warning (0,0)
+		{
+			dprint ("Bonus item fell out of level at ");
+			dprint (vtos(self.origin));
+			dprint ("\n");
+			remove(self);
+			return;
+		}
+	}
+	else
+	{
+		if (self.spawnflags & I_RANDOM_POS)
+		{
+			self.velocity_z = 300;
+			self.velocity_x = -100 + (random() * 200);
+			self.velocity_y = -100 + (random() * 200);
+		}
 	}
 };
 
@@ -63,8 +86,24 @@ Sets the clipping size and plants the object on the floor
 */
 void() StartItem =
 {
-	self.nextthink = time + 0.2;	// items start after other solids
-	self.think = PlaceItem;
+	if (self.spawnflags & I_SPAWN_PARTICLES)
+	{
+		spawn_tfog (self.origin + self.particles_offset);
+	}
+	if (self.spawnflags & I_HIDE_MODEL)
+	{
+		setmodel(self, "");
+	}
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.nextthink = time + 0.2;	// items start after other solids
+		self.think = PlaceItem;
+	}
+	else
+	{
+		PlaceItem ();
+	}
 };
 
 /*
@@ -109,47 +148,80 @@ float	H_MEGA = 2;
 void() health_touch;
 void() item_megahealth_rot;
 
+void() health_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	if (self.spawnflags & H_ROTTEN)
+	{
+		setmodel(self, "maps/b_bh10.bsp");
+		self.noise = "items/r_item1.wav";
+	}
+	else
+	if (self.spawnflags & H_MEGA)
+	{
+		setmodel(self, "maps/b_bh100.bsp");
+		self.noise = "items/r_item2.wav";
+	}
+	else
+	{
+		setmodel(self, "maps/b_bh25.bsp");
+		self.noise = "items/health1.wav";
+	}
+	
+	setsize (self, '0 0 0', '32 32 56');
+	StartItem ();
+};
+
 void() item_health =
 {	
 	self.touch = health_touch;
+	self.use = health_use;
 
 	if (self.spawnflags & H_ROTTEN)
 	{
 		precache_model("maps/b_bh10.bsp");
 
 		precache_sound("items/r_item1.wav");
-		setmodel(self, "maps/b_bh10.bsp");
-		self.noise = "items/r_item1.wav";
 		self.healamount = 15;
 		self.healtype = 0;
+		self.particles_offset = '16 16 8';
 	}
 	else
 	if (self.spawnflags & H_MEGA)
 	{
 		precache_model("maps/b_bh100.bsp");
 		precache_sound("items/r_item2.wav");
-		setmodel(self, "maps/b_bh100.bsp");
-		self.noise = "items/r_item2.wav";
 		self.healamount = 100;
 		self.healtype = 2;
+		self.particles_offset = '16 16 16';
 	}
 	else
 	{
 		precache_model("maps/b_bh25.bsp");
 		precache_sound("items/health1.wav");
-		setmodel(self, "maps/b_bh25.bsp");
-		self.noise = "items/health1.wav";
 		self.healamount = 25;
 		self.healtype = 1;
+		self.particles_offset = '16 16 8';
 	}
-	setsize (self, '0 0 0', '32 32 56');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		health_use ();
+	}
+	
+	
 };
 
 
 void() health_touch =
 {
-	local	float amount;
 	local	string	s;
 	
 	if (other.classname != "player")
@@ -191,10 +263,12 @@ void() health_touch =
 	}
 	else
 	{
-		if (deathmatch != 2)		// deathmatch 2 is the silly old rules
+		//if (deathmatch != 2)		// deathmatch 2 is the silly old rules
+		//{
+		//	if (deathmatch)
+		if(self.wait && self.wait > 0)
 		{
-			if (deathmatch)
-				self.nextthink = time + 20;
+			self.nextthink = time + self.wait;
 			self.think = SUB_regen;
 		}
 	}
@@ -218,9 +292,10 @@ void() item_megahealth_rot =
 // just blindly subtract the flag off
 	other.items = other.items - (other.items & IT_SUPERHEALTH);
 	
-	if (deathmatch == 1)	// deathmatch 2 is silly old rules
+	//if (deathmatch == 1)	// deathmatch 2 is silly old rules
+	if(self.wait && self.wait > 0)
 	{
-		self.nextthink = time + 20;
+		self.nextthink = time + self.wait;
 		self.think = SUB_regen;
 	}
 };
@@ -271,8 +346,9 @@ void() armor_touch =
 
 	self.solid = SOLID_NOT;
 	self.model = string_null;
-	if (deathmatch == 1)
-		self.nextthink = time + 20;
+	//if (deathmatch == 1)
+	if(self.wait && self.wait > 0)
+		self.nextthink = time + self.wait;
 	self.think = SUB_regen;
 
 	sprint(other, "You got armor\n");
@@ -288,40 +364,97 @@ void() armor_touch =
 /*QUAKED item_armor1 (0 .5 .8) (-16 -16 0) (16 16 32)
 */
 
+void() armor1_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/armor.mdl");
+	setsize (self, '-16 -16 0', '16 16 56');
+	self.particles_offset = '21 21 17';
+	StartItem ();
+};
+
 void() item_armor1 =
 {
 	self.touch = armor_touch;
+	self.use = armor1_use;
 	precache_model ("progs/armor.mdl");
-	setmodel (self, "progs/armor.mdl");
 	self.skin = 0;
-	setsize (self, '-16 -16 0', '16 16 56');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		armor1_use ();
+	}
 };
 
 /*QUAKED item_armor2 (0 .5 .8) (-16 -16 0) (16 16 32)
 */
 
+void() armor2_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/armor.mdl");
+	setsize (self, '-16 -16 0', '16 16 56');
+	self.particles_offset = '21 21 17';
+	StartItem ();
+};
+
 void() item_armor2 =
 {
 	self.touch = armor_touch;
+	self.use = armor2_use;
 	precache_model ("progs/armor.mdl");
-	setmodel (self, "progs/armor.mdl");
 	self.skin = 1;
-	setsize (self, '-16 -16 0', '16 16 56');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		armor2_use ();
+	}
 };
 
 /*QUAKED item_armorInv (0 .5 .8) (-16 -16 0) (16 16 32)
 */
 
+void() armorInv_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/armor.mdl");
+	setsize (self, '-16 -16 0', '16 16 56');
+	self.particles_offset = '21 21 17';
+	StartItem ();
+};
+
 void() item_armorInv =
 {
 	self.touch = armor_touch;
+	self.use = armorInv_use;
 	precache_model ("progs/armor.mdl");
-	setmodel (self, "progs/armor.mdl");
 	self.skin = 2;
-	setsize (self, '-16 -16 0', '16 16 56');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		armorInv_use ();
+	}
 };
 
 /*
@@ -392,17 +525,17 @@ float() W_BestWeapon;
 void() weapon_touch =
 {
 	local	float	hadammo, best, new, old;
-	local	entity	stemp;
+	local	entity	w_stemp;
 	local	float	leave;
 
 	if (!(other.flags & FL_CLIENT))
 		return;
 
 // if the player was using his best weapon, change up to the new one if better		
-	stemp = self;
+	w_stemp = self;
 	self = other;
 	best = W_BestWeapon();
-	self = stemp;
+	self = w_stemp;
 
 	if (deathmatch == 2 || coop)
 		leave = 1;
@@ -473,7 +606,7 @@ void() weapon_touch =
 	old = other.items;
 	other.items = other.items | new;
 	
-	stemp = self;
+	w_stemp = self;
 	self = other;
 
 	if (!deathmatch)
@@ -483,7 +616,7 @@ void() weapon_touch =
 
 	W_SetCurrentAmmo();
 
-	self = stemp;
+	self = w_stemp;
 
 	if (leave)
 		return;
@@ -491,8 +624,9 @@ void() weapon_touch =
 // remove it in single player, or setup for respawning in deathmatch
 	self.model = string_null;
 	self.solid = SOLID_NOT;
-	if (deathmatch == 1)
-		self.nextthink = time + 30;
+	//if (deathmatch == 1)
+	if(self.wait && self.wait > 0)
+		self.nextthink = time + self.wait;
 	self.think = SUB_regen;
 	
 	activator = other;
@@ -503,88 +637,198 @@ void() weapon_touch =
 /*QUAKED weapon_supershotgun (0 .5 .8) (-16 -16 0) (16 16 32)
 */
 
+void() supershotgun_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/g_shot.mdl");
+	setsize (self, '-16 -16 0', '16 16 56');
+	self.particles_offset = '0 0 33';
+	StartItem ();
+};
+
 void() weapon_supershotgun =
 {
 	precache_model ("progs/g_shot.mdl");
-	setmodel (self, "progs/g_shot.mdl");
 	self.weapon = IT_SUPER_SHOTGUN;
 	self.netname = "Double-barrelled Shotgun";
 	self.touch = weapon_touch;
-	setsize (self, '-16 -16 0', '16 16 56');
-	StartItem ();
+	self.use = supershotgun_use;
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		supershotgun_use ();
+	}
 };
 
 /*QUAKED weapon_nailgun (0 .5 .8) (-16 -16 0) (16 16 32)
 */
 
+void() nailgun_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/g_nail.mdl");
+	setsize (self, '-16 -16 0', '16 16 56');
+	self.particles_offset = '0 0 31';
+	StartItem ();
+};
+
 void() weapon_nailgun =
 {
 	precache_model ("progs/g_nail.mdl");
-	setmodel (self, "progs/g_nail.mdl");
 	self.weapon = IT_NAILGUN;
 	self.netname = "nailgun";
 	self.touch = weapon_touch;
-	setsize (self, '-16 -16 0', '16 16 56');
-	StartItem ();
+	self.use = nailgun_use;
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		nailgun_use ();
+	}
 };
 
 /*QUAKED weapon_supernailgun (0 .5 .8) (-16 -16 0) (16 16 32)
 */
 
+void() supernailgun_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/g_nail2.mdl");
+	setsize (self, '-16 -16 0', '16 16 56');
+	self.particles_offset = '0 0 34';
+	StartItem ();
+};
+
 void() weapon_supernailgun =
 {
 	precache_model ("progs/g_nail2.mdl");
-	setmodel (self, "progs/g_nail2.mdl");
 	self.weapon = IT_SUPER_NAILGUN;
 	self.netname = "Super Nailgun";
 	self.touch = weapon_touch;
-	setsize (self, '-16 -16 0', '16 16 56');
-	StartItem ();
+	self.use = supernailgun_use;
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		supernailgun_use ();
+	}
 };
 
 /*QUAKED weapon_grenadelauncher (0 .5 .8) (-16 -16 0) (16 16 32)
 */
+void() grenadelauncher_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/g_rock.mdl");
+	setsize (self, '-16 -16 0', '16 16 56');
+	self.particles_offset = '0 0 28';
+	StartItem ();
+};
 
 void() weapon_grenadelauncher =
 {
 	precache_model ("progs/g_rock.mdl");
-	setmodel (self, "progs/g_rock.mdl");
 	self.weapon = 3;
 	self.netname = "Grenade Launcher";
 	self.touch = weapon_touch;
-	setsize (self, '-16 -16 0', '16 16 56');
-	StartItem ();
+	self.use = grenadelauncher_use;
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		grenadelauncher_use ();
+	}
 };
 
 /*QUAKED weapon_rocketlauncher (0 .5 .8) (-16 -16 0) (16 16 32)
 */
+void() rocketlauncher_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/g_rock2.mdl");
+	setsize (self, '-16 -16 0', '16 16 56');
+	self.particles_offset = '0 0 32';
+	StartItem ();
+};
 
 void() weapon_rocketlauncher =
 {
 	precache_model ("progs/g_rock2.mdl");
-	setmodel (self, "progs/g_rock2.mdl");
 	self.weapon = 3;
 	self.netname = "Rocket Launcher";
 	self.touch = weapon_touch;
-	setsize (self, '-16 -16 0', '16 16 56');
-	StartItem ();
+	self.use = rocketlauncher_use;
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		rocketlauncher_use ();
+	}
 };
 
 
 /*QUAKED weapon_lightning (0 .5 .8) (-16 -16 0) (16 16 32)
 */
+void() lightning_gun_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/g_light.mdl");
+	setsize (self, '-16 -16 0', '16 16 56');
+	self.particles_offset = '0 0 31';
+	StartItem ();
+};
 
 void() weapon_lightning =
 {
 	precache_model ("progs/g_light.mdl");
-	setmodel (self, "progs/g_light.mdl");
 	self.weapon = 3;
 	self.netname = "Thunderbolt";
 	self.touch = weapon_touch;
-	setsize (self, '-16 -16 0', '16 16 56');
-	StartItem ();
-};
+	self.use = lightning_gun_use;
 
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		lightning_gun_use ();
+	}
+};	
 
 /*
 ===============================================================================
@@ -596,7 +840,7 @@ AMMO
 
 void() ammo_touch =
 {
-local entity	stemp;
+local entity	w_stemp;
 local float		best;
 
 	if (other.classname != "player")
@@ -605,10 +849,10 @@ local float		best;
 		return;
 
 // if the player was using his best weapon, change up to the new one if better		
-	stemp = self;
+	w_stemp = self;
 	self = other;
 	best = W_BestWeapon();
-	self = stemp;
+	self = w_stemp;
 
 
 // shotgun
@@ -656,24 +900,25 @@ local float		best;
 
 	if ( other.weapon == best )
 	{
-		stemp = self;
+		w_stemp = self;
 		self = other;
 		self.weapon = W_BestWeapon();
 		W_SetCurrentAmmo ();
-		self = stemp;
+		self = w_stemp;
 	}
 
 // if changed current ammo, update it
-	stemp = self;
+	w_stemp = self;
 	self = other;
 	W_SetCurrentAmmo();
-	self = stemp;
+	self = w_stemp;
 
 // remove it in single player, or setup for respawning in deathmatch
 	self.model = string_null;
 	self.solid = SOLID_NOT;
-	if (deathmatch == 1)
-		self.nextthink = time + 30;
+	//if (deathmatch == 1)
+	if(self.wait && self.wait > 0)
+		self.nextthink = time + self.wait;
 	self.think = SUB_regen;
 
 	activator = other;
@@ -688,102 +933,209 @@ float WEAPON_BIG2 = 1;
 /*QUAKED item_shells (0 .5 .8) (0 0 0) (32 32 32) big
 */
 
+void() shells_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	if (self.spawnflags & WEAPON_BIG2)
+	{
+		setmodel (self, "maps/b_shell1.bsp");
+		self.particles_offset = '16 16 16';
+	}
+	else
+	{
+		setmodel (self, "maps/b_shell0.bsp");
+		self.particles_offset = '12 12 12';
+	}
+	setsize (self, '0 0 0', '32 32 56');
+	StartItem ();
+};
+
 void() item_shells =
 {
 	self.touch = ammo_touch;
-
+	self.use = shells_use;
 	if (self.spawnflags & WEAPON_BIG2)
 	{
 		precache_model ("maps/b_shell1.bsp");
-		setmodel (self, "maps/b_shell1.bsp");
 		self.aflag = 40;
 	}
 	else
 	{
 		precache_model ("maps/b_shell0.bsp");
-		setmodel (self, "maps/b_shell0.bsp");
 		self.aflag = 20;
 	}
 	self.weapon = 1;
 	self.netname = "shells";
-	setsize (self, '0 0 0', '32 32 56');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		shells_use ();
+	}
 };
 
 /*QUAKED item_spikes (0 .5 .8) (0 0 0) (32 32 32) big
 */
 
-void() item_spikes =
+void() spikes_use =
 {
-	self.touch = ammo_touch;
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
 
 	if (self.spawnflags & WEAPON_BIG2)
 	{
-		precache_model ("maps/b_nail1.bsp");
 		setmodel (self, "maps/b_nail1.bsp");
+		self.particles_offset = '16 16 16';
+	}
+	else
+	{
+		setmodel (self, "maps/b_nail0.bsp");
+		self.particles_offset = '12 12 12';
+	}
+	setsize (self, '0 0 0', '32 32 56');
+	StartItem ();
+	
+};
+
+void() item_spikes =
+{
+
+	self.touch = ammo_touch;
+	self.use = spikes_use;
+	if (self.spawnflags & WEAPON_BIG2)
+	{
+		precache_model ("maps/b_nail1.bsp");
 		self.aflag = 50;
 	}
 	else
 	{
 		precache_model ("maps/b_nail0.bsp");
-		setmodel (self, "maps/b_nail0.bsp");
 		self.aflag = 25;
 	}
 	self.weapon = 2;
 	self.netname = "nails";
-	setsize (self, '0 0 0', '32 32 56');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		spikes_use ();
+	}
 };
 
 /*QUAKED item_rockets (0 .5 .8) (0 0 0) (32 32 32) big
 */
 
+void() rockets_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	
+	if (self.spawnflags & WEAPON_BIG2)
+	{
+		setmodel (self, "maps/b_rock1.bsp");
+		self.particles_offset = '16 8 16';
+	}
+	else
+	{
+		setmodel (self, "maps/b_rock0.bsp");
+		self.particles_offset = '8 8 16';
+	}
+	setsize (self, '0 0 0', '32 32 56');
+	StartItem ();
+};
+
 void() item_rockets =
 {
-	self.touch = ammo_touch;
 
+	self.touch = ammo_touch;
+	self.use = rockets_use;
 	if (self.spawnflags & WEAPON_BIG2)
 	{
 		precache_model ("maps/b_rock1.bsp");
-		setmodel (self, "maps/b_rock1.bsp");
 		self.aflag = 10;
 	}
 	else
 	{
 		precache_model ("maps/b_rock0.bsp");
-		setmodel (self, "maps/b_rock0.bsp");
 		self.aflag = 5;
 	}
 	self.weapon = 3;
 	self.netname = "rockets";
-	setsize (self, '0 0 0', '32 32 56');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		rockets_use ();
+	}
 };
 
 
 /*QUAKED item_cells (0 .5 .8) (0 0 0) (32 32 32) big
 */
 
+void() cells_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	if (self.spawnflags & WEAPON_BIG2)
+	{
+		setmodel (self, "maps/b_batt1.bsp");
+		self.particles_offset = '16 16 16';
+	}
+	else
+	{
+		setmodel (self, "maps/b_batt0.bsp");
+		self.particles_offset = '12 12 12';
+	}
+	
+	setsize (self, '0 0 0', '32 32 56');
+	StartItem ();
+};
+
 void() item_cells =
 {
-	self.touch = ammo_touch;
 
+	self.touch = ammo_touch;
+	self.use = cells_use;
 	if (self.spawnflags & WEAPON_BIG2)
 	{
 		precache_model ("maps/b_batt1.bsp");
-		setmodel (self, "maps/b_batt1.bsp");
 		self.aflag = 12;
 	}
 	else
 	{
 		precache_model ("maps/b_batt0.bsp");
-		setmodel (self, "maps/b_batt0.bsp");
 		self.aflag = 6;
 	}
 	self.weapon = 4;
 	self.netname = "cells";
-	setsize (self, '0 0 0', '32 32 56');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		cells_use ();
+	}
 };
 
 
@@ -795,22 +1147,73 @@ float WEAPON_SHOTGUN = 1;
 float WEAPON_ROCKET = 2;
 float WEAPON_SPIKES = 4;
 float WEAPON_BIG = 8;
+
+void() weapon_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	if (self.spawnflags & WEAPON_SHOTGUN)
+	{
+		if (self.spawnflags & WEAPON_BIG)
+		{
+			setmodel (self, "maps/b_shell1.bsp");
+		}
+		else
+		{
+			setmodel (self, "maps/b_shell0.bsp");
+		}
+	}
+
+	if (self.spawnflags & WEAPON_SPIKES)
+	{
+		if (self.spawnflags & WEAPON_BIG)
+		{
+			setmodel (self, "maps/b_nail1.bsp");
+		}
+		else
+		{
+			setmodel (self, "maps/b_nail0.bsp");
+		}
+	}
+
+	if (self.spawnflags & WEAPON_ROCKET)
+	{
+		if (self.spawnflags & WEAPON_BIG)
+		{
+			setmodel (self, "maps/b_rock1.bsp");
+		}
+		else
+		{
+			setmodel (self, "maps/b_rock0.bsp");
+		}
+	}
+	
+	setsize (self, '0 0 0', '32 32 56');
+	StartItem ();
+};
+
 void() item_weapon =
 {
 	self.touch = ammo_touch;
+	self.use = weapon_use;
+	
+	self.particles_offset = '0 0 0';
 
 	if (self.spawnflags & WEAPON_SHOTGUN)
 	{
 		if (self.spawnflags & WEAPON_BIG)
 		{
 			precache_model ("maps/b_shell1.bsp");
-			setmodel (self, "maps/b_shell1.bsp");
 			self.aflag = 40;
 		}
 		else
 		{
 			precache_model ("maps/b_shell0.bsp");
-			setmodel (self, "maps/b_shell0.bsp");
 			self.aflag = 20;
 		}
 		self.weapon = 1;
@@ -822,13 +1225,11 @@ void() item_weapon =
 		if (self.spawnflags & WEAPON_BIG)
 		{
 			precache_model ("maps/b_nail1.bsp");
-			setmodel (self, "maps/b_nail1.bsp");
 			self.aflag = 40;
 		}
 		else
 		{
 			precache_model ("maps/b_nail0.bsp");
-			setmodel (self, "maps/b_nail0.bsp");
 			self.aflag = 20;
 		}
 		self.weapon = 2;
@@ -840,21 +1241,22 @@ void() item_weapon =
 		if (self.spawnflags & WEAPON_BIG)
 		{
 			precache_model ("maps/b_rock1.bsp");
-			setmodel (self, "maps/b_rock1.bsp");
 			self.aflag = 10;
 		}
 		else
 		{
 			precache_model ("maps/b_rock0.bsp");
-			setmodel (self, "maps/b_rock0.bsp");
 			self.aflag = 5;
 		}
 		self.weapon = 3;
 		self.netname = "rockets";
 	}
 	
-	setsize (self, '0 0 0', '32 32 56');
-	StartItem ();
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		weapon_use ();
+	}
 };
 
 
@@ -868,9 +1270,6 @@ KEYS
 
 void() key_touch =
 {
-local entity	stemp;
-local float		best;
-
 	if (other.classname != "player")
 		return;
 	if (other.health <= 0)
@@ -927,31 +1326,59 @@ following:
 2: base
 */
 
+void() key1_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	if (world.worldtype == 0)
+	{
+		setmodel (self, "progs/w_s_key.mdl");
+	}
+	else if (world.worldtype == 1)
+	{
+		setmodel (self, "progs/m_s_key.mdl");
+	}
+	else if (world.worldtype == 2)
+	{
+		setmodel (self, "progs/b_s_key.mdl");
+	}
+	setsize (self, '-16 -16 -24', '16 16 32');
+	self.particles_offset = '0 0 18';
+	StartItem ();
+};
+
 void() item_key1 =
 {
 	if (world.worldtype == 0)
 	{
 		precache_model ("progs/w_s_key.mdl");
-		setmodel (self, "progs/w_s_key.mdl");
 		self.netname = "silver key";
 	}
 	else if (world.worldtype == 1)
 	{
 		precache_model ("progs/m_s_key.mdl");
-		setmodel (self, "progs/m_s_key.mdl");
 		self.netname = "silver runekey";
 	}
 	else if (world.worldtype == 2)
 	{
 		precache_model2 ("progs/b_s_key.mdl");
-		setmodel (self, "progs/b_s_key.mdl");
 		self.netname = "silver keycard";
 	}
 	key_setsounds();
 	self.touch = key_touch;
 	self.items = IT_KEY1;
-	setsize (self, '-16 -16 -24', '16 16 32');
-	StartItem ();
+	self.use = key1_use;
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		key1_use ();
+	}
 };
 
 /*QUAKED item_key2 (0 .5 .8) (-16 -16 -24) (16 16 32)
@@ -965,31 +1392,59 @@ following:
 2: base
 */
 
+void() key2_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	if (world.worldtype == 0)
+	{
+		setmodel (self, "progs/w_g_key.mdl");
+	}
+	if (world.worldtype == 1)
+	{
+		setmodel (self, "progs/m_g_key.mdl");
+	}
+	if (world.worldtype == 2)
+	{
+		setmodel (self, "progs/b_g_key.mdl");
+	}
+	setsize (self, '-16 -16 -24', '16 16 32');
+	self.particles_offset = '0 0 18';
+	StartItem ();
+};
+
 void() item_key2 =
 {
 	if (world.worldtype == 0)
 	{
 		precache_model ("progs/w_g_key.mdl");
-		setmodel (self, "progs/w_g_key.mdl");
 		self.netname = "gold key";
 	}
 	if (world.worldtype == 1)
 	{
 		precache_model ("progs/m_g_key.mdl");
-		setmodel (self, "progs/m_g_key.mdl");
 		self.netname = "gold runekey";
 	}
 	if (world.worldtype == 2)
 	{
 		precache_model2 ("progs/b_g_key.mdl");
-		setmodel (self, "progs/b_g_key.mdl");
 		self.netname = "gold keycard";
 	}
 	key_setsounds();
 	self.touch = key_touch;
 	self.items = IT_KEY2;
-	setsize (self, '-16 -16 -24', '16 16 32');
-	StartItem ();
+	self.use = key2_use;
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		key2_use ();
+	}
 };
 
 
@@ -1004,9 +1459,6 @@ END OF LEVEL RUNES
 
 void() sigil_touch =
 {
-local entity	stemp;
-local float		best;
-
 	if (other.classname != "player")
 		return;
 	if (other.health <= 0)
@@ -1030,6 +1482,40 @@ local float		best;
 End of level sigil, pick up to end episode and return to jrstart.
 */
 
+void() sigil_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	if (!self.spawnflags)
+		objerror ("no spawnflags");
+
+	if (self.spawnflags & 1)
+	{
+		setmodel (self, "progs/end1.mdl");
+	}
+	if (self.spawnflags & 2)
+	{
+		setmodel (self, "progs/end2.mdl");
+	}
+	if (self.spawnflags & 4)
+	{
+		setmodel (self, "progs/end3.mdl");
+	}
+	if (self.spawnflags & 8)
+	{
+		setmodel (self, "progs/end4.mdl");
+	}
+
+	setsize (self, '-16 -16 -24', '16 16 32');
+	self.particles_offset = '0 0 18';
+	StartItem ();
+};
+
 void() item_sigil =
 {
 	if (!self.spawnflags)
@@ -1041,27 +1527,28 @@ void() item_sigil =
 	if (self.spawnflags & 1)
 	{
 		precache_model ("progs/end1.mdl");
-		setmodel (self, "progs/end1.mdl");
 	}
 	if (self.spawnflags & 2)
 	{
 		precache_model2 ("progs/end2.mdl");
-		setmodel (self, "progs/end2.mdl");
 	}
 	if (self.spawnflags & 4)
 	{
 		precache_model2 ("progs/end3.mdl");
-		setmodel (self, "progs/end3.mdl");
 	}
 	if (self.spawnflags & 8)
 	{
 		precache_model2 ("progs/end4.mdl");
-		setmodel (self, "progs/end4.mdl");
 	}
 	
 	self.touch = sigil_touch;
-	setsize (self, '-16 -16 -24', '16 16 32');
-	StartItem ();
+	self.use = sigil_use;
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		sigil_use ();
+	}
 };
 
 /*
@@ -1077,9 +1564,6 @@ void() powerup_touch;
 
 void() powerup_touch =
 {
-local entity	stemp;
-local float		best;
-
 	if (other.classname != "player")
 		return;
 	if (other.health <= 0)
@@ -1089,6 +1573,7 @@ local float		best;
 	sprint (other, self.netname);
 	sprint (other,"\n");
 
+	/*
 	if (deathmatch)
 	{
 		self.mdl = self.model;
@@ -1101,6 +1586,14 @@ local float		best;
 		
 		self.think = SUB_regen;
 	}	
+	*/
+	
+	if(self.wait && self.wait > 0)
+	{
+		self.nextthink = time + self.wait;
+		self.think = SUB_regen;
+	}
+	
 
 	sound (other, CHAN_VOICE, self.noise, 1, ATTN_NORM);
 	stuffcmd (other, "bf\n");
@@ -1142,78 +1635,155 @@ local float		best;
 /*QUAKED item_artifact_invulnerability (0 .5 .8) (-16 -16 -24) (16 16 32)
 Player is invulnerable for 30 seconds
 */
+void() artifact_invulnerability_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/invulner.mdl");
+	setsize (self, '-16 -16 -24', '16 16 32');
+	self.particles_offset = '0 0 0';
+	StartItem ();
+};
+
 void() item_artifact_invulnerability =
 {
-	self.touch = powerup_touch;
 
+	self.touch = powerup_touch;
+	self.use = artifact_invulnerability_use;
 	precache_model ("progs/invulner.mdl");
 	precache_sound ("items/protect.wav");
 	precache_sound ("items/protect2.wav");
 	precache_sound ("items/protect3.wav");
 	self.noise = "items/protect.wav";
-	setmodel (self, "progs/invulner.mdl");
 	self.netname = "Pentagram of Protection";
 	self.items = IT_INVULNERABILITY;
-	setsize (self, '-16 -16 -24', '16 16 32');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		artifact_invulnerability_use ();
+	}
 };
 
 /*QUAKED item_artifact_envirosuit (0 .5 .8) (-16 -16 -24) (16 16 32)
 Player takes no damage from water or slime for 30 seconds
 */
+void() artifact_envirosuit_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/suit.mdl");
+	setsize (self, '-16 -16 -24', '16 16 32');
+	self.particles_offset = '0 0 0';
+	StartItem ();
+};
+
 void() item_artifact_envirosuit =
 {
-	self.touch = powerup_touch;
 
+	self.touch = powerup_touch;
+	self.use = artifact_envirosuit_use;
 	precache_model ("progs/suit.mdl");
 	precache_sound ("items/suit.wav");
 	precache_sound ("items/suit2.wav");
 	self.noise = "items/suit.wav";
-	setmodel (self, "progs/suit.mdl");
 	self.netname = "Biosuit";
 	self.items = IT_SUIT;
-	setsize (self, '-16 -16 -24', '16 16 32');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		artifact_envirosuit_use ();
+	}
 };
 
 
 /*QUAKED item_artifact_invisibility (0 .5 .8) (-16 -16 -24) (16 16 32)
 Player is invisible for 30 seconds
 */
+void() artifact_invisibility_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/invisibl.mdl");
+	setsize (self, '-16 -16 -24', '16 16 32');
+	self.particles_offset = '0 0 0';
+	StartItem ();
+};
+
 void() item_artifact_invisibility =
 {
-	self.touch = powerup_touch;
 
+	self.touch = powerup_touch;
+	self.use = artifact_invisibility_use;
 	precache_model ("progs/invisibl.mdl");
 	precache_sound ("items/inv1.wav");
 	precache_sound ("items/inv2.wav");
 	precache_sound ("items/inv3.wav");
 	self.noise = "items/inv1.wav";
-	setmodel (self, "progs/invisibl.mdl");
 	self.netname = "Ring of Shadows";
 	self.items = IT_INVISIBILITY;
-	setsize (self, '-16 -16 -24', '16 16 32');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		artifact_invisibility_use ();
+	}
 };
 
 
 /*QUAKED item_artifact_super_damage (0 .5 .8) (-16 -16 -24) (16 16 32)
 The next attack from the player will do 4x damage
 */
+
+void() artifact_super_damage_use =
+{
+	if(self.solid == SOLID_TRIGGER)
+		return;
+	
+	if(self.wait >= 0)
+	{
+		self.use = SUB_Null;
+	}
+	setmodel (self, "progs/quaddama.mdl");
+	setsize (self, '-16 -16 -24', '16 16 32');
+	self.particles_offset = '0 0 0';
+	StartItem ();
+};
+
 void() item_artifact_super_damage =
 {
 	self.touch = powerup_touch;
+	self.use = artifact_super_damage_use;
 
 	precache_model ("progs/quaddama.mdl");
 	precache_sound ("items/damage.wav");
 	precache_sound ("items/damage2.wav");
 	precache_sound ("items/damage3.wav");
 	self.noise = "items/damage.wav";
-	setmodel (self, "progs/quaddama.mdl");
 	self.netname = "Quad Damage";
 	self.items = IT_QUAD;
-	setsize (self, '-16 -16 -24', '16 16 32');
-	StartItem ();
+	
+	if(!self.targetname || self.targetname == "")
+	{
+		self.use = SUB_Null;
+		artifact_super_damage_use ();
+	}
 };
 
 
@@ -1228,9 +1798,9 @@ PLAYER BACKPACKS
 
 void() BackpackTouch =
 {
-	local string	s;
+	local 	string	s;
 	local	float	best, old, new;
-	local		entity	stemp;
+	local	entity	w_stemp;
 	local	float	acount;
 	
 	if (other.classname != "player")
@@ -1250,10 +1820,10 @@ void() BackpackTouch =
 		}
 
 // if the player was using his best weapon, change up to the new one if better		
-	stemp = self;
+	w_stemp = self;
 	self = other;
 	best = W_BestWeapon();
-	self = stemp;
+	self = w_stemp;
 
 // change weapons
 	other.ammo_shells = other.ammo_shells + self.ammo_shells;
