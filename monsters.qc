@@ -93,10 +93,17 @@ void() monster_death_use =
 {
 // fall to ground
 	if (self.flags & FL_FLY)
+	{
 		self.flags = self.flags - FL_FLY;
+		self.wait_for_drop = TRUE;
+	}
+	
 	if (self.flags & FL_SWIM)
+	{
 		self.flags = self.flags - FL_SWIM;
-
+		self.wait_for_drop = TRUE;
+	}
+	
 	if (!self.target)
 		return;
 

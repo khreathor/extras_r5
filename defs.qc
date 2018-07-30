@@ -516,6 +516,7 @@ float	AS_MISSILE		= 4;
 .entity 	movetarget;
 .void()		spawnfunc;		// Enemy spawn function (khreathor)
 .float 		spawned;		// Stores spawn state (khreathor)
+.float		wait_for_drop	// (khreathor)
 
 //
 // doors

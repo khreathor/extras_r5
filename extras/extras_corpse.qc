@@ -59,12 +59,93 @@ void() corpse_touch =
 	}
 };
 
-void() GibIfInAirForTooLong =
+void() GibIfHangingFromLedge =
+{
+	local	vector	v_start;
+	local	vector	v_end;
+	
+	//	'-32 -32 -24' '32 32 -22'
+	///	1st corner
+	v_start = self.absmin + '0 0 2';
+	v_end = v_start - '0 0 4';
+	traceline(v_start, v_end, TRUE, self);
+	
+	if(trace_fraction == 1)
+	{
+		dprint("GibIfHangingFromLedge\n");
+		T_Damage (self, other, other, 22);
+		self.think = SUB_Null;
+		return;
+	}
+	
+	///	2nd corner
+	v_start_x = v_start_x + self.size.x;
+	v_end = v_start - '0 0 4';
+	traceline(v_start, v_end, TRUE, self);
+	
+	if(trace_fraction == 1)
+	{
+		dprint("GibIfHangingFromLedge\n");
+		T_Damage (self, other, other, 22);
+		self.think = SUB_Null;
+		return;
+	}
+	
+	///	3rd corner
+	v_start_y = v_start_y + self.size.y;
+	v_end = v_start - '0 0 4';
+	traceline(v_start, v_end, TRUE, self);
+	
+	if(trace_fraction == 1)
+	{
+		dprint("GibIfHangingFromLedge\n");
+		T_Damage (self, other, other, 22);
+		self.think = SUB_Null;
+		return;
+	}
+	
+	///	4th corner
+	v_start_x = v_start_x - self.size.x;
+	v_end = v_start - '0 0 4';
+	traceline(v_start, v_end, TRUE, self);
+	
+	if(trace_fraction == 1)
+	{
+		dprint("GibIfHangingFromLedge\n");
+		T_Damage (self, other, other, 22);
+		self.think = SUB_Null;
+		return;
+	}
+};
+
+void() GibIfInAir =
 {
 	if (!checkbottom(self))
+	{
+		dprint("GibIfInAir\n");
 		T_Damage (self, other, other, 22);
-	self.think = SUB_Null;
-}
+		return;
+	}
+	
+	GibIfHangingFromLedge();
+};
+
+void() DelayedGibCheck =
+{
+	if(self.flags & FL_ONGROUND)
+	{
+		GibIfInAir();
+	}
+	else if(self.cnt < 1)
+	{
+		self.nextthink = time + 0.1;
+		self.cnt = self.cnt + 0.1;
+	}
+	else
+	{
+		GibIfInAir();
+	}
+};
 
 void() corpse_die =
 {
@@ -93,7 +174,7 @@ void() become_corpse =
 	self.movetype = MOVETYPE_STEP;
 	self.flags = self.flags & (!FL_MONSTER);
 	
-	setsize (self, '-32 -32 -24', '32 32 -22');
+	setsize (self, '-20 -20 -24', '20 20 -22');
 	
 	self.classname = "monster_corpse";
 	
@@ -117,11 +198,19 @@ void() become_corpse =
 	self.touch = corpse_touch;
 	self.attack_finished = time;
 	
-	if(self.flags & FL_FLY)
+	///	Gib if corpse is intersecting with other enemy/player entity (khreathor)
+	spawn_tdeath(self.origin,self);
+
+	if(!self.wait_for_drop)
 	{
-		self.think = GibIfInAirForTooLong;
-		self.nextthink = time + 4;
+		GibIfInAir();
 	}
-}
+	else
+	{
+		self.cnt = 0;
+		self.think = DelayedGibCheck;
+		self.nextthink = time + 0.1;
+	}
+};
 
 //============================================================================
