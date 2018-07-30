@@ -492,6 +492,59 @@ local entity	bubble_spawner;
 	return;
 };
 
+void() DeathBubblesSpawnOnEntity =
+{
+	local entity	bubble;
+	local vector	tmp_vec_up;
+	local float		tmp_forward;
+	if (self.owner.waterlevel != 3 && !self.owner.inwater)
+	{
+		dprint("Not in water\n");
+		return;
+	}
+	
+	bubble = spawn();
+	setmodel (bubble, "progs/s_bubble.spr");
+	
+	tmp_vec_up = self.owner.maxs * 0.5;
+	tmp_vec_up_x = tmp_vec_up_y = 0;
+	tmp_vec_up = self.owner.origin + tmp_vec_up;
+	
+	tmp_forward = self.owner.maxs_x * 0.5;
+	
+	makevectors(self.owner.angles);
+	setorigin (bubble, tmp_vec_up + v_forward * tmp_forward);// pOx - moved this infront a bit
+	bubble.movetype = MOVETYPE_NOCLIP;
+	bubble.solid = SOLID_NOT;
+	bubble.velocity = '0 0 15';
+	bubble.nextthink = time + 0.25;
+	bubble.think = bubble_bob2;//bubble_bob; // pOx - disslve bubbles quicker for players
+	bubble.classname = "bubble";
+	bubble.frame = 0;
+	bubble.cnt = 0;
+	setsize (bubble, '-8 -8 -8', '8 8 8');
+	self.nextthink = time + 0.15;
+	self.think = DeathBubblesSpawnOnEntity;
+	self.air_finished = self.air_finished + 1;
+	if (self.air_finished >= self.bubble_count)
+		remove(self);
+};
+
+void(entity ent, float num_bubbles) DeathBubblesOnEntity =
+{
+	local entity	bubble_spawner;
+	
+	bubble_spawner = spawn();
+	setorigin (bubble_spawner, ent.origin);
+	bubble_spawner.movetype = MOVETYPE_NONE;
+	bubble_spawner.solid = SOLID_NOT;
+	bubble_spawner.nextthink = time + 0.2;
+	bubble_spawner.think = DeathBubblesSpawnOnEntity;
+	bubble_spawner.air_finished = 0;
+	bubble_spawner.owner = ent;
+	bubble_spawner.bubble_count = num_bubbles;
+	return;
+};
 
 void() DeathSound =
 {

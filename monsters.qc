@@ -27,7 +27,8 @@
 ///	Monster spawning flags (khreathor)
 float	INITIALIZE_ONLY	= 4;		// Initialize but not spawn - flag
 float	PARTICLES_ON_SPAWN = 8;		// Fire particles on spawn. Works only with INITIALIZE_ONLY
-float	ATTACK_AFTER_SPAWN = 16;	// Make enemey attack player after spawn. Works only with INITIALIZE_ONLY
+float	ATTACK_AFTER_SPAWN = 16;	// Make an enemy attack player after spawn. Works only with INITIALIZE_ONLY
+float	CAN_DROWN = 32;				// Make an enemy able to drown
 
 /*
 ================

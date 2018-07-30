@@ -499,6 +499,11 @@ The monster is staying in one place for a while, with slight angle turns
 */
 void() ai_stand =
 {
+	// Retrigger water touch when not moving 
+	// Used when eneimies should drown (khreathor)
+	if(self.spawnflags & 32)
+		walkmove(0, 0);
+	
 	if (FindTarget ())
 		return;
 	

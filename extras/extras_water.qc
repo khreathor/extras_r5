@@ -191,13 +191,46 @@ void() liquid_use =
 	// ...already started moving
 };
 
+void(entity entToDrown) liquid_drown =
+{
+	if(other.flags & FL_SWIM)
+		return;
+	
+	if(entToDrown.takedamage == DAMAGE_NO)
+		return;
+	
+	if(entToDrown.health < 0)
+		return;
+	
+	if(entToDrown.drawntime < time && entToDrown.spawnflags & CAN_DROWN)
+	{
+		sound (self, CHAN_BODY, "player/drown1.wav", 1, ATTN_NORM);
+		DeathBubblesOnEntity(entToDrown,5);
+		T_Damage (entToDrown, world, world, 10);
+		entToDrown.drawntime = time + 1;
+	}
+};
+
+void(entity entToDrown) liquid_sound =
+{
+	if (other.fwatershifttime < time && other.watertype)
+		{			
+			other.watertype = self.watertype;
+			other.waterlevel = 1;
+			other.inwater = TRUE;
+		}
+		
+		// C code will go nuts with the splash sound if we don't time out while in func_water
+		other.fwatershifttime = time + 0.1;	
+};
+
 void() liquid_touch =
 {
 	local float test;
+	local vector test_vec;
 	local float r,g,b,i,c;
 	
 	if (!(other.flags & FL_CLIENT)) {
-		
 		// Handle some special cases (always set think1 as death function!)
 		if (other.classname == "drip") {
 			setorigin(other, other.origin + '0 0 6');
@@ -224,12 +257,50 @@ void() liquid_touch =
 			other.movetype == MOVETYPE_NOCLIP)// MOVETYPE_WALK is always FL_CLIENT so don't worry about it
 			return;
 		
+		// Check if monster in water (khreathor)
+		if(other.flags & FL_MONSTER)
+		{
+			test_vec = other.maxs - '0 0 8';
+			test_vec_x = test_vec_y = 0;
+			test_vec = other.origin + test_vec;
+			
+			if (test_vec_z <= self.absmax_z && test_vec_z >= self.absmin_z)
+			{
+				if(test_vec_x <= self.absmax_x && test_vec_x >= self.absmin_x)
+				{
+					if(test_vec_y <= self.absmax_y && test_vec_y >= self.absmin_y)
+					{
+						other.inwater = TRUE;
+						if(!other.inwsound)
+						{
+							other.drawntime = time + 12;
+							other.watertype = self.watertype;
+							other.waterlevel = 1;
+							other.inwsound = TRUE;
+						}
+						liquid_drown(other);
+						return;
+					}
+				}
+			}
+			
+			other.inwater = FALSE;
+			if(other.inwsound)
+			{
+				other.watertype = self.watertype;
+				other.waterlevel = 1;
+				other.inwsound = FALSE;
+			}
+			return;
+		}
+		
 		// Wait for the engine to assign CONTENT_EMPTY before changing watertype (just spawned)
-		if (other.fwatershifttime < time && other.watertype) {					
+		if (other.fwatershifttime < time && other.watertype)
+		{			
 			other.watertype = self.watertype;
 			other.waterlevel = 1;
 		}
-			
+		
 		// C code will go nuts with the splash sound if we don't time out while in func_water
 		other.fwatershifttime = time + 0.1;	
 		return;
