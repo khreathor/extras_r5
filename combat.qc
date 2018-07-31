@@ -317,6 +317,53 @@ void(entity targ, entity inflictor, entity attacker, float damage) T_Damage=
 
 /*
 ============
+T_EELZap
+============
+*/
+void(entity inflictor, entity attacker, float damage) T_EELZap =
+{
+	local	float 	points;
+	local	float	radius;
+	local	entity	head;
+	local	vector	org;
+
+	radius = damage + 100;
+	
+	head = findradius(inflictor.origin, radius);
+	
+	while (head)
+	{
+		if (head.takedamage)
+		{
+			org = head.origin + (head.mins + head.maxs)*0.5;
+			
+			points = damage - (vlen(inflictor.origin - org) * damage / radius);
+			
+			/*
+			points = 0.5*vlen (inflictor.origin - org);
+			if (points < 0)
+				points = 0;
+			points = damage - points;
+			if (head == attacker)
+				points = points * 0.5;
+			*/
+			
+			if (points > 0)
+			{
+				if (CanDamage (head, inflictor))
+				{	// eels take no damage from this attack
+					if (head.classname != "monster_eel" && 
+						(head.flags & FL_INWATER))					
+						T_Damage (head, inflictor, attacker, points);
+				}
+			}
+		}
+		head = head.chain;
+	}
+};
+
+/*
+============
 T_RadiusDamage
 ============
 */
