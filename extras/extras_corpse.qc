@@ -155,6 +155,13 @@ void() corpse_die =
 	
 	if (self.headmdl == "progs/gib3.mdl") {// Fish
 		ThrowGib ("progs/gib3.mdl", self.health*0.25);
+	} else if(self.headmdl == "progs/hydragib.mdl")
+	{
+		ThrowGib ("progs/gib3.mdl", self.health);
+		ThrowGib ("progs/hydragib.mdl", self.health);
+		ThrowGib ("progs/hydragib.mdl", self.health);
+		ThrowGib ("progs/hydragib.mdl", self.health);
+		ThrowGib ("progs/hydragib.mdl", self.health);
 	} else {
 		ThrowGib ("progs/gib1.mdl", self.health*0.25);
 		ThrowGib ("progs/gib2.mdl", self.health*0.25);
@@ -174,7 +181,18 @@ void() become_corpse =
 	self.movetype = MOVETYPE_STEP;
 	self.flags = self.flags & (!FL_MONSTER);
 	
-	setsize (self, '-20 -20 -24', '20 20 -22');
+	if(self.classname == "monster_hydra")
+	{
+		setsize (self, '-16 -16 -24', '16 16 0');
+	}
+	else if(self.classname == "monster_eel")
+	{
+		setsize (self, '-16 -16 -8', '16 16 -6');
+	}
+	else
+	{
+		setsize (self, '-20 -20 -24', '20 20 -22');
+	}
 	
 	self.classname = "monster_corpse";
 	
