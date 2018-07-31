@@ -45,6 +45,9 @@ shalrath.qc		// registered
 enforcer.qc		// registered
 oldone.qc		// registered
 
+eel.qc			// Eel from Dissolution of Eternity
+hydra.qc		// 
+
 // pOx  - additions (see each file for info)
 extras/extras_subs.qc
 extras/extras_train.qc
