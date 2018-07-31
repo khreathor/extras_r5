@@ -479,6 +479,7 @@ float	AS_MISSILE		= 4;
 .float		fly_sound;
 
 .float		axhitme;
+.float		slowdowntime;	// for hydra slowdown attack (khreathor)
 
 .float		show_hostile;	// set to time+0.2 whenever a client fires a
 							// weapon or takes damage.  Used to alert

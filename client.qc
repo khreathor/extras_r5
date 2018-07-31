@@ -1037,6 +1037,24 @@ void() PlayerPreThink =
 		self.weapon = W_BestWeapon ();
 		W_SetCurrentAmmo ();
 	}
+	
+	if(self.slowdowntime > time)
+	{
+		self.velocity_x = self.velocity_x * 0.5;
+		self.velocity_y = self.velocity_y * 0.5;
+		//if(self.flags & FL_INWATER)
+		if(self.waterlevel == 3)
+		{
+			self.velocity_z = self.velocity_z * 0.5;
+		}
+		else
+		{
+			if(self.velocity_z > 0)
+			{
+				self.velocity_z = self.velocity_x * 0.5;
+			}
+		}
+	}
 };
 	
 /*
