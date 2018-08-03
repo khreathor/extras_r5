@@ -174,6 +174,8 @@ void() corpse_die =
 
 void() become_corpse =
 {
+	local	vector	v_maxs;
+	
 	self.health = 20;
 		
 	self.takedamage = DAMAGE_YES;
@@ -191,7 +193,9 @@ void() become_corpse =
 	}
 	else
 	{
-		setsize (self, '-20 -20 -24', '20 20 -22');
+		v_maxs = self.maxs;
+		v_maxs_z = self.mins_z + 2;
+		setsize (self, self.mins, v_maxs);
 	}
 	
 	self.classname = "monster_corpse";
