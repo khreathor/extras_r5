@@ -201,6 +201,8 @@ Drown function for monsters;
 */
 void(entity entToDrown) liquid_drown =
 {
+	local float damage;
+	
 	if(other.flags & FL_SWIM)
 		return;
 	
@@ -218,16 +220,21 @@ void(entity entToDrown) liquid_drown =
 		sound (self, CHAN_BODY, "player/drown1.wav", 1, ATTN_NORM);
 		DeathBubblesOnEntity(entToDrown,5);
 		// drowning damage formula 5*(x^2/10 + 1) // (khreathor)
-		entToDrown.dmg = 5 * (entToDrown.cnt * entToDrown.cnt * 0.1 + 1);
+		entToDrown.drown_dmg = 5 * (entToDrown.drown_cnt * entToDrown.drown_cnt * 0.1 + 1);
 		
-		if(entToDrown.health < entToDrown.dmg)
+		if(entToDrown.health < entToDrown.drown_dmg)
 		{
-			entToDrown.dmg = entToDrown.health;
+			entToDrown.drown_dmg = entToDrown.health;
 		}
 		
-		T_Damage (entToDrown, world, world, entToDrown.dmg);
+		T_Damage (entToDrown, world, world, entToDrown.drown_dmg);
+		//dprint("drown_cnt: ");
+		//dprint(ftos(entToDrown.drown_cnt));
+		//dprint(" | drown_dmg: ");
+		//dprint(ftos(entToDrown.drown_dmg));
+		//dprint("\n");
 		entToDrown.drawntime = time + 1;
-		entToDrown.cnt = entToDrown.cnt + 1;
+		entToDrown.drown_cnt = entToDrown.drown_cnt + 1;
 	}
 };
 
@@ -294,8 +301,8 @@ void() liquid_touch =
 						if(!other.inwsound)
 						{
 							other.drawntime = time + 12;
-							other.dmg = 0;
-							other.cnt = 1;
+							other.drown_dmg = 0;
+							other.drown_cnt = 1;
 							other.watertype = self.watertype;
 							other.waterlevel = 1;
 							other.inwsound = TRUE;
