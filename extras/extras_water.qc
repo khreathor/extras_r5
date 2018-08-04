@@ -191,6 +191,14 @@ void() liquid_use =
 	// ...already started moving
 };
 
+/*
+=======================================================
+liquid_drown
+
+(khreathor)
+Drown function for monsters;
+=======================================================
+*/
 void(entity entToDrown) liquid_drown =
 {
 	if(other.flags & FL_SWIM)
@@ -202,12 +210,24 @@ void(entity entToDrown) liquid_drown =
 	if(entToDrown.health < 0)
 		return;
 	
+	if(entToDrown.classname == "monster_corpse")
+		return;
+	
 	if(entToDrown.drawntime < time && entToDrown.spawnflags & CAN_DROWN)
 	{
 		sound (self, CHAN_BODY, "player/drown1.wav", 1, ATTN_NORM);
 		DeathBubblesOnEntity(entToDrown,5);
-		T_Damage (entToDrown, world, world, 10);
+		// drowning damage formula 5*(x^2/10 + 1) // (khreathor)
+		entToDrown.dmg = 5 * (entToDrown.cnt * entToDrown.cnt * 0.1 + 1);
+		
+		if(entToDrown.health < entToDrown.dmg)
+		{
+			entToDrown.dmg = entToDrown.health;
+		}
+		
+		T_Damage (entToDrown, world, world, entToDrown.dmg);
 		entToDrown.drawntime = time + 1;
+		entToDrown.cnt = entToDrown.cnt + 1;
 	}
 };
 
@@ -274,6 +294,8 @@ void() liquid_touch =
 						if(!other.inwsound)
 						{
 							other.drawntime = time + 12;
+							other.dmg = 0;
+							other.cnt = 1;
 							other.watertype = self.watertype;
 							other.waterlevel = 1;
 							other.inwsound = TRUE;
