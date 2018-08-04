@@ -38,7 +38,6 @@ $frame pain9
 $frame hspit1 hspit2 hspit3 hspit4 hspit5 hspit6 hspit7 hspit8 
 $frame hspit9 hspit10 hspit11 hspit12
 
-
 void() hydra_stand1  =[      $swim1, hydra_stand2 ] {ai_stand();
 if (random() < 0.5)
 	sound (self, CHAN_VOICE, "hydra/hydra_idle2.wav", 1, ATTN_NORM);};
@@ -61,40 +60,48 @@ void() hydra_stand17 =[      $swim17, hydra_stand18 ] {ai_stand();};
 void() hydra_stand18 =[      $swim18, hydra_stand1 ] {ai_stand();};
 
 
-void() hydra_walk1  =[      $swim1, hydra_walk2 ] {ai_walk(8);
+void() hydra_walk1  =[      $swim1, hydra_walk2 ] {ai_walk(20);
 if (random() < 0.5)
 	sound (self, CHAN_VOICE, "hydra/hydra_idle2.wav", 1, ATTN_NORM);};
-void() hydra_walk2  =[      $swim2, hydra_walk3 ] {ai_walk(8);};
-void() hydra_walk3  =[      $swim3, hydra_walk4 ] {ai_walk(8);};
-void() hydra_walk4  =[      $swim4, hydra_walk5 ] {ai_walk(8);};
-void() hydra_walk5  =[      $swim5, hydra_walk6 ] {ai_walk(8);};
-void() hydra_walk6  =[      $swim6, hydra_walk7 ] {ai_walk(8);};
-void() hydra_walk7  =[      $swim7, hydra_walk8 ] {ai_walk(8);};
-void() hydra_walk8  =[      $swim8, hydra_walk9 ] {ai_walk(8);};
-void() hydra_walk9  =[      $swim9, hydra_walk10  ] {ai_walk(8);};
-void() hydra_walk10 =[      $swim10, hydra_walk11 ] {ai_walk(8);};
-void() hydra_walk11 =[      $swim11, hydra_walk12 ] {ai_walk(8);};
-void() hydra_walk12 =[      $swim12, hydra_walk13 ] {ai_walk(8);};
-void() hydra_walk13 =[      $swim13, hydra_walk14 ] {ai_walk(8);};
-void() hydra_walk14 =[      $swim14, hydra_walk15 ] {ai_walk(8);};
-void() hydra_walk15 =[      $swim15, hydra_walk16 ] {ai_walk(8);};
-void() hydra_walk16 =[      $swim16, hydra_walk17 ] {ai_walk(8);};
-void() hydra_walk17 =[      $swim17, hydra_walk18 ] {ai_walk(8);};
-void() hydra_walk18 =[      $swim18, hydra_walk1 ] {ai_walk(8);};
+void() hydra_walk2  =[      $swim2, hydra_walk3 ] {ai_walk(15);};
+void() hydra_walk3  =[      $swim3, hydra_walk4 ] {ai_walk(15);};
+void() hydra_walk4  =[      $swim4, hydra_walk5 ] {ai_walk(15);};
+void() hydra_walk5  =[      $swim5, hydra_walk6 ] {ai_walk(15);};
+void() hydra_walk6  =[      $swim6, hydra_walk7 ] {ai_walk(15);};
+void() hydra_walk7  =[      $swim7, hydra_walk8 ] {ai_walk(15);};
+void() hydra_walk8  =[      $swim8, hydra_walk9 ] {ai_walk(15);};
+void() hydra_walk9  =[      $swim9, hydra_walk10  ] {ai_walk(15);};
+void() hydra_walk10 =[      $swim10, hydra_walk11 ] {ai_walk(15);};
+void() hydra_walk11 =[      $swim11, hydra_walk12 ] {ai_walk(15);};
+void() hydra_walk12 =[      $swim12, hydra_walk13 ] {ai_walk(15);};
+void() hydra_walk13 =[      $swim13, hydra_walk14 ] {ai_walk(15);};
+void() hydra_walk14 =[      $swim14, hydra_walk15 ] {ai_walk(15);};
+void() hydra_walk15 =[      $swim15, hydra_walk16 ] {ai_walk(15);};
+void() hydra_walk16 =[      $swim16, hydra_walk17 ] {ai_walk(15);};
+void() hydra_walk17 =[      $swim17, hydra_walk18 ] {ai_walk(15);};
+void() hydra_walk18 =[      $swim18, hydra_walk1 ] {ai_walk(15);};
 
 
-void() hydra_run1  =[      $swim1, hydra_run2 ] {ai_run(13);
+void() hydra_run1  =[      $swim1, hydra_run2 ] 
+{
+	// Swim faster after player is paralyzed (khreathor)
+	if(self.aflag > time)
+		self.speed = 40;
+	else
+		self.speed = 30;
+	
+	ai_run(self.speed);
 	if (random() < 0.5)
 		sound (self, CHAN_VOICE, "hydra/hydra_idle.wav", 1, ATTN_NORM);
 };
-void() hydra_run2  =[      $swim3, hydra_run3 ] {ai_run(13);};
-void() hydra_run3  =[      $swim5, hydra_run4 ] {ai_run(13);};
-void() hydra_run4  =[      $swim7, hydra_run5 ] {ai_run(13);};
-void() hydra_run5  =[      $swim9, hydra_run6 ] {ai_run(13);};
-void() hydra_run6  =[      $swim11, hydra_run7 ] {ai_run(13);};
-void() hydra_run7  =[      $swim13, hydra_run8 ] {ai_run(13);};
-void() hydra_run8  =[      $swim15, hydra_run9 ] {ai_run(13);};
-void() hydra_run9  =[      $swim17, hydra_run1 ] {ai_run(13);};
+void() hydra_run2  =[      $swim3, hydra_run3 ] {ai_run(self.speed);};
+void() hydra_run3  =[      $swim5, hydra_run4 ] {ai_run(self.speed);};
+void() hydra_run4  =[      $swim7, hydra_run5 ] {ai_run(self.speed);};
+void() hydra_run5  =[      $swim9, hydra_run6 ] {ai_run(self.speed);};
+void() hydra_run6  =[      $swim11, hydra_run7 ] {ai_run(self.speed);};
+void() hydra_run7  =[      $swim13, hydra_run8 ] {ai_run(self.speed);};
+void() hydra_run8  =[      $swim15, hydra_run9 ] {ai_run(self.speed);};
+void() hydra_run9  =[      $swim17, hydra_run1 ] {ai_run(self.speed);};
 
 
 void() hydra_melee =
@@ -102,13 +109,15 @@ void() hydra_melee =
 	local vector	delta;
 	local float 	ldmg;
 
+	ai_charge(20);
+	
 	if (!self.enemy)
 		return;		// removed before stroke
 		
 	delta = self.enemy.origin - self.origin;
 
 	// distance changed from 60 to 80 (khreathor)
-	if (vlen(delta) > 80) 
+	if (vlen(delta) > 80)
 		return;
 		
 	sound (self, CHAN_VOICE, "hydra/hydra_tent.wav", 1, ATTN_NORM);
@@ -118,30 +127,30 @@ void() hydra_melee =
 };
 
 
-void() hydra_attack1        =[      $attack1,       hydra_attack2 ] {ai_charge(10);};
-void() hydra_attack2        =[      $attack2,       hydra_attack3 ] {ai_charge(10);};
-void() hydra_attack3        =[      $attack3,       hydra_attack4 ] {ai_charge(10);};	
-void() hydra_attack4        =[      $attack4,       hydra_attack5 ] {ai_charge(10);};
-void() hydra_attack5        =[      $attack5,       hydra_attack6 ] {ai_charge(10);};
+void() hydra_attack1        =[      $attack1,       hydra_attack2 ] {ai_charge(20);};
+void() hydra_attack2        =[      $attack2,       hydra_attack3 ] {ai_charge(20);};
+void() hydra_attack3        =[      $attack3,       hydra_attack4 ] {ai_charge(20);};	
+void() hydra_attack4        =[      $attack4,       hydra_attack5 ] {ai_charge(20);};
+void() hydra_attack5        =[      $attack5,       hydra_attack6 ] {ai_charge(20);};
 void() hydra_attack6        =[      $attack6,       hydra_attack7 ] {hydra_melee();};	// one for each tentacle
-void() hydra_attack7        =[      $attack7,       hydra_attack8 ] {ai_charge(10);};
-void() hydra_attack8        =[      $attack8,       hydra_attack9 ] {ai_charge(10);};
-void() hydra_attack9        =[      $attack9,       hydra_attack10] {ai_charge(10);};
+void() hydra_attack7        =[      $attack7,       hydra_attack8 ] {ai_charge(20);};
+void() hydra_attack8        =[      $attack8,       hydra_attack9 ] {ai_charge(20);};
+void() hydra_attack9        =[      $attack9,       hydra_attack10] {ai_charge(20);};
 void() hydra_attack10       =[      $attack10,      hydra_attack11] {hydra_melee();};	// one for each tentacle
-void() hydra_attack11       =[      $attack11,      hydra_attack12] {ai_charge(10);};
-void() hydra_attack12       =[      $attack12,      hydra_attack13] {ai_charge(10);};
-void() hydra_attack13       =[      $attack13,      hydra_attack14] {ai_charge(10);};
+void() hydra_attack11       =[      $attack11,      hydra_attack12] {ai_charge(20);};
+void() hydra_attack12       =[      $attack12,      hydra_attack13] {ai_charge(20);};
+void() hydra_attack13       =[      $attack13,      hydra_attack14] {ai_charge(20);};
 void() hydra_attack14       =[      $attack14,      hydra_attack15] {hydra_melee();};	// one for each tentacle
-void() hydra_attack15       =[      $attack15,      hydra_attack16] {ai_charge(10);};
-void() hydra_attack16       =[      $attack16,      hydra_attack17] {ai_charge(10);};
-void() hydra_attack17       =[      $attack17,      hydra_attack18] {ai_charge(10);};
-void() hydra_attack18       =[      $attack18,      hydra_attack19] {ai_charge(10);};
-void() hydra_attack19       =[      $attack19,      hydra_attack20] {ai_charge(10);};
-void() hydra_attack20       =[      $attack20,      hydra_attack21] {ai_charge(10);};
-void() hydra_attack21       =[      $attack21,      hydra_attack22] {ai_charge(10);};
+void() hydra_attack15       =[      $attack15,      hydra_attack16] {ai_charge(20);};
+void() hydra_attack16       =[      $attack16,      hydra_attack17] {ai_charge(20);};
+void() hydra_attack17       =[      $attack17,      hydra_attack18] {ai_charge(20);};
+void() hydra_attack18       =[      $attack18,      hydra_attack19] {ai_charge(20);};
+void() hydra_attack19       =[      $attack19,      hydra_attack20] {ai_charge(20);};
+void() hydra_attack20       =[      $attack20,      hydra_attack21] {ai_charge(20);};
+void() hydra_attack21       =[      $attack21,      hydra_attack22] {ai_charge(20);};
 void() hydra_attack22       =[      $attack22,      hydra_attack23] {hydra_melee();};	// one for each tentacle
-void() hydra_attack23       =[      $attack23,      hydra_attack24] {ai_charge(10);};
-void() hydra_attack24       =[      $attack24,      hydra_run1] {ai_charge(10);};
+void() hydra_attack23       =[      $attack23,      hydra_attack24] {ai_charge(20);};
+void() hydra_attack24       =[      $attack24,      hydra_run1] {ai_charge(20);};
 
 
 void() hydra_spit_touch =
@@ -160,6 +169,7 @@ void() hydra_spit_touch =
 	{
 		if (other.classname == "player")
 		{
+			self.owner.aflag = time + 5;
 			other.slowdowntime = time + 3;	//	we slowdown player instead of pausing him (khreathor)
 			//other.pausetime = time + 2;	// player cannot walk and see during this time
 			spawn_touchblood (7);
@@ -272,11 +282,14 @@ void() hydra_pain9  =[      $pain9, hydra_run1 ] {ai_pain(6);};
 
 void(entity attacker, float damage)	hydra_pain =
 {
-	if (self.pain_finished > time)
-		return;
+	if(random() > 0.875)
+	{
+		if (self.pain_finished > time)
+			return;
 
-	self.pain_finished = time + 1;
-	hydra_pain1 ();
+		self.pain_finished = time + 1;
+		hydra_pain1 ();
+	}
 };
 
 void() hydra_death=
@@ -315,7 +328,7 @@ void() hydra_spawn =
 	self.skin = 0;
 
 	setsize (self, '-16 -16 -24', '16 16 24');
-	self.health = 150;//75;	// I gave hydra more life (khreathor)
+	self.health = 200;//75;	// I gave hydra more life (khreathor)
 
 	self.th_stand = hydra_stand1;
 	self.th_walk = hydra_walk1;
