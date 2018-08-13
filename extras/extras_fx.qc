@@ -500,6 +500,11 @@ void() ambientsound_start =
 	ambientsound (self.origin, self.noise, self.volume, self.distance);
 };
 
+void() ambientsound_trigger_start =
+{
+	sound (self, CHAN_AUTO, self.noise, self.volume, self.distance);
+};
+
 /*QUAKED fx_ambientsound (0 .5 .8) (-8 -8 -8) (8 8 8)
 Plays any sound as a true ambientsound. Wait's for trigger if it has a targetname.
 
@@ -531,7 +536,7 @@ void() fx_ambientsound =
 		self.think = ambientsound_start;
 	}
 	else// wait for trigger
-		self.use = ambientsound_start;
+		self.use = ambientsound_trigger_start;
 };
 
 //============================================================================
