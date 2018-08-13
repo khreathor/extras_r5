@@ -335,9 +335,6 @@ void() liquid_touch =
 		return;
 	}
 	
-	// Don't let water sweep ayway someone on a ladder (not if totally underwater though)
-	if (other.laddertime > time) return;
-	
 	// Test Feet (if feet are below maxs and above mins, we're in)
 	test = other.origin_z + other.mins_z + 1;
 	if (test <= self.absmax_z && test >= self.absmin_z) {
@@ -366,6 +363,9 @@ void() liquid_touch =
 			other.fwatershifttime = time+frametime;
 			other.fwatershift = TRUE;
 		}
+		
+		// Don't let water sweep ayway someone on a ladder (not if totally underwater though)
+		if (other.laddertime > time) return;
 		
 		// Add drag and/or current
 		if (self.spawnflags & EASEUNDERCURRENT) c = 4-other.waterlevel; else c = other.waterlevel;	
