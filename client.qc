@@ -989,8 +989,8 @@ void() PlayerPreThink =
 	// pOx - START - func_water & func_ladder support
 	// Set cshift back to normal if eyes are out of func_water
 	if (self.fwatershifttime < time) {
+		stuffcmd(self, "v_cshift 130 80 50 0\n");
 		if (self.fwatershift) {
-			stuffcmd(self, "v_cshift 130 80 50 0\n");
 			self.fwatershift = FALSE;
 		}
 	}
