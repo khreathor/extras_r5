@@ -326,8 +326,9 @@ void(entity inflictor, entity attacker, float damage) T_EELZap =
 	local	float	radius;
 	local	entity	head;
 	local	vector	org;
+	local	vector	dir;
 
-	radius = damage + 100;
+	radius = damage + 128;
 	
 	head = findradius(inflictor.origin, radius);
 	
@@ -336,7 +337,7 @@ void(entity inflictor, entity attacker, float damage) T_EELZap =
 		if (head.takedamage)
 		{
 			org = head.origin + (head.mins + head.maxs)*0.5;
-			
+						
 			points = damage - (vlen(inflictor.origin - org) * damage / radius);
 			
 			/*
@@ -353,8 +354,25 @@ void(entity inflictor, entity attacker, float damage) T_EELZap =
 				if (CanDamage (head, inflictor))
 				{	// eels take no damage from this attack
 					if (head.classname != "monster_eel" && 
-						(head.flags & FL_INWATER))					
-						T_Damage (head, inflictor, attacker, points);
+						(head.flags & FL_INWATER))
+						{	
+							dir = org - inflictor.origin;
+							dir = normalize (dir);
+						
+							traceline (inflictor.origin, inflictor.origin + dir*radius, TRUE, self);
+
+							WriteByte (MSG_BROADCAST, SVC_TEMPENTITY);
+							WriteByte (MSG_BROADCAST, TE_LIGHTNING1);
+							WriteEntity (MSG_BROADCAST, self);
+							WriteCoord (MSG_BROADCAST, inflictor.origin_x);
+							WriteCoord (MSG_BROADCAST, inflictor.origin_y);
+							WriteCoord (MSG_BROADCAST, inflictor.origin_z);
+							WriteCoord (MSG_BROADCAST, trace_endpos_x);
+							WriteCoord (MSG_BROADCAST, trace_endpos_y);
+							WriteCoord (MSG_BROADCAST, trace_endpos_z);
+							
+							T_Damage (head, inflictor, attacker, points);
+						}
 				}
 			}
 		}

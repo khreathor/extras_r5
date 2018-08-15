@@ -111,7 +111,7 @@ void() eel_attack8 =[ $eelswim2, eel_attack9 ]
 	self.skin=1;
 	ai_charge(8);
     eel_pitch_change();
-    sound (self, CHAN_WEAPON, "eel/eatt1.wav", 1, ATTN_NORM);
+    sound (self, CHAN_WEAPON, "eel/eatt1.wav", 0.75, ATTN_NORM);
 };
 void() eel_attack9 =[ $eelswim3, eel_attack10 ]
     { self.skin=2;ai_charge(8);eel_pitch_change(); };
@@ -126,7 +126,7 @@ void() eel_death1 =[	$eeldth1,	eel_death2	]
 {
 	self.skin = 0;
 	self.effects = 0;
-	sound (self, CHAN_VOICE, "eel/edie3r.wav", 1, ATTN_NORM);
+	sound (self, CHAN_VOICE, "eel/edie3r.wav", 0.5, ATTN_NORM);
 };
 void() eel_death2 =[	$eeldth2,	eel_death3	] {};
 void() eel_death3 =[	$eeldth3,	eel_death4	] 
@@ -179,7 +179,7 @@ void() eel_pain1  =[	$eeldth1, eel_pain2 ]
 		return;
 	
 	self.pain_finished = time + 1;
-	sound (self, CHAN_VOICE, "eel/epain3.wav", 1, ATTN_NORM); 
+	sound (self, CHAN_VOICE, "eel/epain3.wav", 0.75, ATTN_NORM); 
 	self.skin=0;
 };
 void() eel_pain2  =[	$eeldth2, eel_pain3 ] {};
