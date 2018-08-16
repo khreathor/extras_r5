@@ -320,6 +320,18 @@ void() become_corpse =
 	{
 		setsize (self, '-16 -16 -8', '16 16 -6');
 	}
+	else if(self.classname == "func_model")
+	{
+		v_mins = self.mins;
+		v_maxs = self.maxs;
+		v_mins_x = v_mins_x * 0.5;
+		v_mins_y = v_mins_y * 0.5;
+		v_mins_z = v_mins_z + 4;
+		v_maxs_x = v_maxs_x * 0.5;
+		v_maxs_y = v_maxs_y * 0.5;
+		v_maxs_z = v_mins_z + 2;
+		setsize (self, v_mins, v_maxs);
+	}
 	else
 	{
 		v_maxs = self.maxs;
