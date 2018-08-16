@@ -196,7 +196,7 @@ void() corpse_timer_touch =
 {
 	if(other.flags & FL_CLIENT || other.flags & FL_MONSTER)
 	{
-		self.nextthink = time + 1;
+		self.nextthink = time + 0.5;
 		self.owner.solid = SOLID_NOT;
 		setsize (self.owner, self.owner.mins, self.owner.maxs);
 		setorigin (self.owner, self.owner.origin);
@@ -228,7 +228,7 @@ Timer used after player touches corpse. Used to re-check
 if player is still touching corpse after some time;
 =======================================================
 */
-void(entity own_ent) corpse_timer =
+void(entity own_ent, float t) corpse_timer =
 {
 	local entity cnt_ent;
 	
@@ -238,7 +238,7 @@ void(entity own_ent) corpse_timer =
 	cnt_ent.solid = SOLID_TRIGGER;
 	setsize (cnt_ent, own_ent.mins - '1 1 1', own_ent.maxs + '1 1 1');
 	setorigin (cnt_ent, own_ent.origin);
-	cnt_ent.nextthink = time + 1;
+	cnt_ent.nextthink = time + t;
 	cnt_ent.think = corpse_timer_think;
 	cnt_ent.touch = corpse_timer_touch;
 	cnt_ent.owner = own_ent;
@@ -253,7 +253,7 @@ void() corpse_touch =
 		if(other.health && HangingFromLedge() && !self.owner && self.solid != SOLID_NOT)
 		{
 			self.solid = SOLID_NOT;
-			corpse_timer(self);
+			corpse_timer(self,0.5);
 		}
 		
 		if ((!other.flags & FL_ONGROUND))
@@ -303,12 +303,16 @@ void() corpse_die =
 
 void() become_corpse =
 {
+	local	vector	v_mins;
 	local	vector	v_maxs;
 	
 	self.health = 20;
 		
 	self.takedamage = DAMAGE_YES;
-	self.solid = SOLID_SLIDEBOX;
+	//self.solid = SOLID_SLIDEBOX;
+	
+	self.solid = SOLID_NOT;
+	
 	self.movetype = MOVETYPE_STEP;
 	self.flags = self.flags & (!FL_MONSTER);
 	
@@ -339,6 +343,8 @@ void() become_corpse =
 		setsize (self, self.mins, v_maxs);
 	}
 	
+	setorigin (self, self.origin);
+	
 	self.classname = "monster_corpse";
 	
 	self.origin_z = self.origin_z + 2; // less likely to fall into ground
@@ -363,6 +369,8 @@ void() become_corpse =
 	
 	///	Gib if corpse is intersecting with other enemy/player entity (khreathor)
 	//spawn_tdeath(self.origin,self);
+	
+	corpse_timer(self,0.2);
 	
 	if(self.wait_for_drop)
 	{
