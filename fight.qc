@@ -25,7 +25,7 @@ void(float side)	Demon_Melee;
 void(vector dest) ChooseTurn;
 
 void() ai_face;
-
+void() vanilla_water_check;
 
 float	enemy_vis, enemy_infront, enemy_range;
 float	enemy_yaw;
@@ -167,6 +167,8 @@ Stay facing the enemy
 */
 void() ai_face =
 {
+	vanilla_water_check();
+	
 	self.ideal_yaw = vectoyaw(self.enemy.origin - self.origin);
 	ChangeYaw ();
 };
@@ -192,6 +194,8 @@ void() ai_charge_side =
 {
 	local	vector	dtemp;
 	local	float	heading;
+	
+	vanilla_water_check();
 	
 // aim to the left of the enemy for a flyby
 
@@ -219,7 +223,9 @@ void() ai_melee =
 
 	if (!self.enemy)
 		return;		// removed before stroke
-		
+
+	vanilla_water_check();
+	
 	delta = self.enemy.origin - self.origin;
 
 	if (vlen(delta) > 60)

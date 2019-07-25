@@ -28,7 +28,8 @@ Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 .vector		old_velocity;
 
 // Swimming
-.float	inwater;		// In water flag (khreathor)
+.float	inwater;		// In func_water flag (khreathor)
+.float	inBSPwater;		// In regular water flag (khreathor)
 .float	drawntime		// Delays between drawning damage (khreathor)
 .float 	uwmuffle;		// underwater muffle playing flag
 .float	outwsound;		// head out of water flag

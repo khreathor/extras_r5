@@ -251,6 +251,42 @@ void(entity entToDrown) liquid_sound =
 		other.fwatershifttime = time + 0.1;	
 };
 
+void() vanilla_water_check =
+{
+	local vector test_vec;
+	
+	if(!(self.spawnflags & CAN_DROWN))
+		return;
+	
+	if(self.inwater == TRUE)
+		return;
+	
+	test_vec = self.maxs - '0 0 16';
+	test_vec_x = test_vec_y = 0;
+	test_vec = self.origin + test_vec;
+	
+	if(pointcontents(test_vec) < -2)
+	{
+		if(!self.inBSPwater)
+		{
+			//dprint("under water \n");
+			self.drawntime = time + 12;
+			self.drown_dmg = 0;
+			self.drown_cnt = 1;
+			self.inBSPwater = TRUE;
+		}
+		liquid_drown(self);
+		return;
+	}
+	
+	if(self.inBSPwater)
+	{
+		//dprint("above water \n");
+		self.inBSPwater = FALSE;
+	}
+	return;
+};
+
 void() liquid_touch =
 {
 	local float test;

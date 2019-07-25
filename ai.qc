@@ -4,6 +4,8 @@ void() knight_walk1;
 void() knight_bow6;
 void() knight_bow1;
 void(entity etemp, entity stemp, entity stemp, float dmg) T_Damage;
+void() vanilla_water_check;
+
 /*
 
 .enemy
@@ -423,11 +425,13 @@ float() FindTarget =
 
 void(float dist) ai_forward =
 {
+	vanilla_water_check();
 	walkmove (self.angles_y, dist);
 };
 
 void(float dist) ai_back =
 {
+	vanilla_water_check();
 	walkmove ( (self.angles_y+180), dist);
 };
 
@@ -461,6 +465,7 @@ stagger back a bit
 */
 void(float dist) ai_painforward =
 {
+	vanilla_water_check();
 	walkmove (self.ideal_yaw, dist);
 };
 
@@ -474,6 +479,8 @@ The monster is walking it's beat
 void(float dist) ai_walk =
 {
 	local vector		mtemp;
+	
+	vanilla_water_check();
 	
 	movedist = dist;
 	
@@ -504,6 +511,12 @@ void() ai_stand =
 	if(self.spawnflags & 32)
 		walkmove(0, 0);
 	
+	vanilla_water_check();
+	
+	//	Quit function when drowned (khreathor)
+	if(self.health <= 0)
+		return;
+	
 	if (FindTarget ())
 		return;
 	
@@ -526,6 +539,9 @@ don't move, but turn towards ideal_yaw
 */
 void() ai_turn =
 {
+	
+	vanilla_water_check();
+	
 	if (FindTarget ())
 		return;
 	
@@ -615,6 +631,13 @@ Turn and close until within an angle to launch a melee attack
 */
 void() ai_run_melee =
 {
+	
+	vanilla_water_check();
+	
+	//	Quit function when drowned (khreathor)
+	if(self.health <= 0)
+		return;
+	
 	self.ideal_yaw = enemy_yaw;
 	ChangeYaw ();
 
@@ -635,6 +658,13 @@ Turn in place until within an angle to launch a missile attack
 */
 void() ai_run_missile =
 {
+	
+	vanilla_water_check();
+	
+	//	Quit function when drowned (khreathor)
+	if(self.health <= 0)
+		return;
+	
 	self.ideal_yaw = enemy_yaw;
 	ChangeYaw ();
 	if (FacingIdeal())
@@ -655,6 +685,8 @@ Strafe sideways, but stay at aproximately the same range
 void() ai_run_slide =
 {
 	local float	ofs;
+	
+	vanilla_water_check();
 	
 	self.ideal_yaw = enemy_yaw;
 	ChangeYaw ();
@@ -686,6 +718,12 @@ void(float dist) ai_run =
 	local	float	direct, ang_rint, ang_floor, ang_ceil;
 	
 	movedist = dist;
+	
+	vanilla_water_check();
+	
+	//	Quit function when drowned (khreathor)
+	if(self.health <= 0)
+		return;
 	
 	// see if the enemy is dead
 	// corpse check added, to stop self.enemy from being stuck on corpses (khreathor)
