@@ -50,27 +50,27 @@ void() eel_walk1  =[ $eelswim1, eel_walk2 ]
 {
 	if (random() < 0.2)
 		sound (self, CHAN_VOICE, "eel/eactive1.wav", 1, ATTN_IDLE);
-	ai_walk(6);
+	ai_fish_movement("ai_walk",6);
     eel_pitch_change();
 };
-void() eel_walk2  =[ $eelswim2, eel_walk3 ] {ai_walk(6);eel_pitch_change();};
-void() eel_walk3  =[ $eelswim3, eel_walk4 ] {ai_walk(6);eel_pitch_change();};
-void() eel_walk4  =[ $eelswim4, eel_walk5 ] {ai_walk(6);eel_pitch_change();};
-void() eel_walk5  =[ $eelswim5, eel_walk6 ] {ai_walk(6);eel_pitch_change();};
-void() eel_walk6  =[ $eelswim6, eel_walk1 ] {ai_walk(6);eel_pitch_change();};
+void() eel_walk2  =[ $eelswim2, eel_walk3 ] {ai_fish_movement("ai_walk",6);eel_pitch_change();};
+void() eel_walk3  =[ $eelswim3, eel_walk4 ] {ai_fish_movement("ai_walk",6);eel_pitch_change();};
+void() eel_walk4  =[ $eelswim4, eel_walk5 ] {ai_fish_movement("ai_walk",6);eel_pitch_change();};
+void() eel_walk5  =[ $eelswim5, eel_walk6 ] {ai_fish_movement("ai_walk",6);eel_pitch_change();};
+void() eel_walk6  =[ $eelswim6, eel_walk1 ] {ai_fish_movement("ai_walk",6);eel_pitch_change();};
 
 void() eel_run1  =[      $eelswim1, eel_run2 ]
 {
 	if (random() < 0.4)
 		sound (self, CHAN_VOICE, "eel/eactive1.wav", 1, ATTN_IDLE);
-	ai_run(10);
+	ai_fish_movement("ai_run",10);
     eel_pitch_change();
 };
-void() eel_run2  =[ $eelswim2, eel_run3 ] {ai_run(10);eel_pitch_change();};
-void() eel_run3  =[ $eelswim3, eel_run4 ] {ai_run(10);eel_pitch_change();};
-void() eel_run4  =[ $eelswim4, eel_run5 ] {ai_run(10);eel_pitch_change();};
-void() eel_run5  =[ $eelswim5, eel_run6 ] {ai_run(10);eel_pitch_change();};
-void() eel_run6  =[ $eelswim6, eel_run1 ] {ai_run(10);eel_pitch_change();};
+void() eel_run2  =[ $eelswim2, eel_run3 ] {ai_fish_movement("ai_run",10);eel_pitch_change();};
+void() eel_run3  =[ $eelswim3, eel_run4 ] {ai_fish_movement("ai_run",10);eel_pitch_change();};
+void() eel_run4  =[ $eelswim4, eel_run5 ] {ai_fish_movement("ai_run",10);eel_pitch_change();};
+void() eel_run5  =[ $eelswim5, eel_run6 ] {ai_fish_movement("ai_run",10);eel_pitch_change();};
+void() eel_run6  =[ $eelswim6, eel_run1 ] {ai_fish_movement("ai_run",10);eel_pitch_change();};
 
 void() eel_melee =
 {
@@ -92,33 +92,33 @@ void() eel_melee =
 };
 
 void() eel_attack1 =[ $eelswim1, eel_attack2 ]
-	{ ai_charge(8); eel_pitch_change();};
+	{ ai_fish_movement("ai_charge",8); eel_pitch_change();};
 void() eel_attack2 =[ $eelswim2, eel_attack3 ]
-	{ ai_charge(8); eel_pitch_change();};
+	{ ai_fish_movement("ai_charge",8); eel_pitch_change();};
 void() eel_attack3 =[ $eelswim3, eel_attack4 ]
-	{ ai_charge(8); eel_pitch_change();};
+	{ ai_fish_movement("ai_charge",8); eel_pitch_change();};
 void() eel_attack4 =[ $eelswim4, eel_attack5 ]
-	{ ai_charge(8); eel_pitch_change();};
+	{ ai_fish_movement("ai_charge",8); eel_pitch_change();};
 void() eel_attack5 =[ $eelswim5, eel_attack6 ]
-	{ ai_charge(8); eel_pitch_change();};
+	{ ai_fish_movement("ai_charge",8); eel_pitch_change();};
 void() eel_attack6 =[ $eelswim6, eel_attack7 ]
-	{ ai_charge(8); eel_pitch_change();};
+	{ ai_fish_movement("ai_charge",8); eel_pitch_change();};
 void() eel_attack7 =[ $eelswim1, eel_attack8 ]
-	{ ai_charge(8); eel_pitch_change();};
+	{ ai_fish_movement("ai_charge",8); eel_pitch_change();};
 void() eel_attack8 =[ $eelswim2, eel_attack9 ] 
 { 
 	self.effects = EF_DIMLIGHT;
 	self.skin=1;
-	ai_charge(8);
+	ai_fish_movement("ai_charge",8);
     eel_pitch_change();
     sound (self, CHAN_WEAPON, "eel/eatt1.wav", 0.75, ATTN_NORM);
 };
 void() eel_attack9 =[ $eelswim3, eel_attack10 ]
-    { self.skin=2;ai_charge(8);eel_pitch_change(); };
+    { self.skin=2;ai_fish_movement("ai_charge",8);eel_pitch_change(); };
 void() eel_attack10=[ $eelswim4, eel_attack11 ]
-    { self.skin=3;ai_charge(8);eel_pitch_change(); };
+    { self.skin=3;ai_fish_movement("ai_charge",8);eel_pitch_change(); };
 void() eel_attack11=[ $eelswim5, eel_attack12 ] 
-    { self.effects = EF_BRIGHTLIGHT; self.skin=4;ai_charge(8);eel_pitch_change();};
+    { self.effects = EF_BRIGHTLIGHT; self.skin=4;ai_fish_movement("ai_charge",8);eel_pitch_change();};
 void() eel_attack12=[ $eelswim6, eel_run1 ] 
 	{ self.skin=5;eel_melee(); };
 

@@ -55,6 +55,9 @@ Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 .float oldgravity;
 .float zerogtime;
 
+// Swimming monsters
+.entity tempgoal;
+
 // General use
 .float speed2;
 .float wait2;

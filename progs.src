@@ -49,6 +49,7 @@ eel.qc			// Eel from Dissolution of Eternity
 hydra.qc		// 
 
 // pOx  - additions (see each file for info)
+extras/extras_ai.qc			///	New AI behavior (khreathor)
 extras/extras_subs.qc
 extras/extras_train.qc
 extras/extras_buttons.qc
