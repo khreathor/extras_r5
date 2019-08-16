@@ -1,11 +1,12 @@
 void() getRidOfTempGoal =
 {
+    if(!self.tempgoal)
+        return;
+
 	self.enemy = self.oldenemy;
 	self.goalentity = self.enemy;
 	self.movetarget = self.enemy;
-	
-	//dprint("Removing temporary goal\n");
-	
+
 	remove(self.tempgoal);
 	self.tempgoal = world;
 }
@@ -16,49 +17,67 @@ void() delayedTargetChange =
 	self.owner.enemy = self.owner.oldenemy;
 	self.owner.goalentity = self.owner.enemy;
 	self.owner.movetarget = self.owner.enemy;
-	
-	//dprint("Removing temporary goal\n");
-	
+
 	remove(self);
 }
+
 void() unsuckFromWaterSurface =
 {
 	local	entity	tmpgoal;
 	local	vector	tmppos;
 	
-	///	Do things every animation frame
-	//dprint("pointcontents: ");
-	//dprint(ftos(pointcontents(self.origin + '0 0 8')));
-	//dprint("\n");
-	
-	if( pointcontents(self.origin + '0 0 8') > -3)
+	if(range(self.oldenemy) == RANGE_MELEE)
+		return;
+
+	if(self.flags & FL_SWIM)
 	{
-		if(!self.tempgoal)
+		if( pointcontents(self.origin + '0 0 8') > -3)
 		{
-			//dprint("Creating temporary goal\n");
-			tmpgoal = spawn();
-			tmpgoal.classname = "tmp_goal";
-			tmpgoal.health = 1;
-			tmpgoal.movetype = MOVETYPE_NONE;
-			tmpgoal.solid = SOLID_NOT;
-			setorigin (tmpgoal, self.goalentity.origin);
-			setsize (tmpgoal, '-4 -4 -4 ', '4 4 4');
-			tmpgoal.view_ofs = ' 0 0 16 ';
-			tmpgoal.owner = self;
-			tmpgoal.think = delayedTargetChange;
-			tmpgoal.nextthink = time + 2;
-		
-			self.tempgoal = tmpgoal;
-			self.oldenemy = self.enemy;
-			self.enemy = self.tempgoal;
+			if(!self.tempgoal)
+			{
+				//dprint("Creating temporary goal\n");
+				tmpgoal = spawn();
+				tmpgoal.classname = "tmp_goal";
+				tmpgoal.health = 1;
+				tmpgoal.movetype = MOVETYPE_NONE;
+				tmpgoal.solid = SOLID_NOT;
+				setorigin (tmpgoal, self.goalentity.origin);
+				setsize (tmpgoal, '-4 -4 -4 ', '4 4 4');
+				tmpgoal.view_ofs = ' 0 0 4 ';
+				tmpgoal.owner = self;
+				tmpgoal.think = delayedTargetChange;
+				tmpgoal.nextthink = time + 2;
+
+				self.tempgoal = tmpgoal;
+				self.oldenemy = self.enemy;
+				self.enemy = self.tempgoal;
+			}
+
+			tmppos = self.oldenemy.origin;
+			tmppos_z = self.origin_z - self.size_z;
+
+			setorigin (self.tempgoal, tmppos);
+			self.goalentity = self.tempgoal;
+			self.movetarget = self.tempgoal;
 		}
-		
-		tmppos = self.oldenemy.origin;
-		tmppos_z = self.origin_z - self.size_z;
-		
-		setorigin (self.tempgoal, tmppos);
-		self.goalentity = self.tempgoal;
-		self.movetarget = self.tempgoal;
+	}
+}
+
+void() handleFuncWaterSwimming =
+{
+    //  Unstuck fishes
+    if(!walkmove(0,0) && self.infuncwater)
+    {
+        dprint("STUCK!!! ");
+        self.flags = self.flags - (self.flags & FL_FLY);
+        self.flags = self.flags - (self.flags & FL_SWIM);
+    }
+
+    //  Reset fly every animation frame
+    if(self.flags & FL_FLY)
+	{
+		self.flags = self.flags - (self.flags & FL_FLY);
+		self.flags = self.flags | FL_SWIM;
 	}
 }
 
@@ -85,11 +104,10 @@ void(string action, float value) ai_fish_movement=
 	}
 	else if(action == "ai_charge")
 	{
-		if(self.enemy.classname != "player")
+		if(!(self.enemy.flags & FL_CLIENT))
 		{
 			getRidOfTempGoal();
 		}
 		ai_charge(value);
 	}
-	
 }

@@ -177,11 +177,12 @@ float (entity targ) visible =
 	spot1 = self.origin + self.view_ofs;
 	spot2 = targ.origin + targ.view_ofs;
 	traceline (spot1, spot2, TRUE, self);	// see through other monsters
-	
-	
-	//	Commented this out for now. Experimenting with stuff (khreathor)
-	//if (trace_inopen && trace_inwater)
-	//	return FALSE;			// sight line crossed contents
+
+	if(!(self.flags & FL_SWIM))
+	{
+        if (trace_inopen && trace_inwater)
+            return FALSE;			// sight line crossed contents
+    }
 
 	if (trace_fraction == 1)
 		return TRUE;

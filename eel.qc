@@ -206,7 +206,7 @@ void() eel_spawn =
 	self.headmdl = "progs/eelgib.mdl";
 	setmodel (self, "progs/eel2.mdl");
 
-	setsize (self, VEC_HULL_MIN, VEC_HULL_MAX);
+	setsize (self, VEC_HULL_MIN, '16 16 24');
 	//setsize (self, '-16 -16 -24', '16 16 32');
 	self.health = 60;
 
