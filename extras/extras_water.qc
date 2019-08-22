@@ -244,7 +244,7 @@ void(entity entToDrown) liquid_sound =
 		{			
 			other.watertype = self.watertype;
 			other.waterlevel = 1;
-			other.inwater = TRUE;
+			other.infuncwater = TRUE;
 		}
 		
 		// C code will go nuts with the splash sound if we don't time out while in func_water
@@ -255,12 +255,6 @@ void() vanilla_water_check =
 {
 	local vector test_vec;
 	
-	if(!(self.spawnflags & CAN_DROWN))
-		return;
-	
-	if(self.inwater == TRUE)
-		return;
-	
 	test_vec = self.maxs - '0 0 16';
 	test_vec_x = test_vec_y = 0;
 	test_vec = self.origin + test_vec;
@@ -270,21 +264,22 @@ void() vanilla_water_check =
 		if(!self.inBSPwater)
 		{
 			//dprint("under water \n");
+			self.inBSPwater = TRUE;
+		}
+		
+		if(self.spawnflags & CAN_DROWN)
+		{
 			self.drawntime = time + 12;
 			self.drown_dmg = 0;
 			self.drown_cnt = 1;
-			self.inBSPwater = TRUE;
+			liquid_drown(self);
 		}
-		liquid_drown(self);
-		return;
 	}
-	
-	if(self.inBSPwater)
+	else if(self.inBSPwater)
 	{
 		//dprint("above water \n");
 		self.inBSPwater = FALSE;
 	}
-	return;
 };
 
 void() liquid_touch =
@@ -327,13 +322,13 @@ void() liquid_touch =
 			test_vec_x = test_vec_y = 0;
 			test_vec = other.origin + test_vec;
 			
-			if (test_vec_z <= self.absmax_z && test_vec_z >= self.absmin_z)
+			if (test_vec_z <= self.absmax_z + 4 && test_vec_z >= self.absmin_z - 4)
 			{
-				if(test_vec_x <= self.absmax_x && test_vec_x >= self.absmin_x)
+				if(test_vec_x <= self.absmax_x + 4 && test_vec_x >= self.absmin_x - 4)
 				{
-					if(test_vec_y <= self.absmax_y && test_vec_y >= self.absmin_y)
+					if(test_vec_y <= self.absmax_y + 4 && test_vec_y >= self.absmin_y - 4)
 					{
-						other.inwater = TRUE;
+						other.infuncwater = TRUE;
 						if(!other.inwsound)
 						{
 							other.drawntime = time + 12;
@@ -343,13 +338,27 @@ void() liquid_touch =
 							other.waterlevel = 1;
 							other.inwsound = TRUE;
 						}
+						
+						///	Check if on surface
+						test_vec = test_vec + '0 0 8';
+						if (test_vec_z >= self.absmax_z)
+						{
+							other.onSurface = TRUE;
+						}
+						else
+						{
+							other.onSurface = FALSE;
+						}
+						
 						liquid_drown(other);
 						return;
 					}
 				}
 			}
+
+			other.infuncwater = FALSE;
+			other.onSurface = FALSE;
 			
-			other.inwater = FALSE;
 			if(other.inwsound)
 			{
 				other.watertype = self.watertype;

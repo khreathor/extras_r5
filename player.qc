@@ -497,7 +497,7 @@ void() DeathBubblesSpawnOnEntity =
 	local entity	bubble;
 	local vector	tmp_vec_up;
 	local float		tmp_forward;
-	if (self.owner.waterlevel != 3 && !self.owner.inwater)
+	if (self.owner.waterlevel != 3 && !self.owner.infuncwater)
 	{
 		dprint("Not in water\n");
 		return;
