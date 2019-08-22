@@ -8,13 +8,13 @@ $frame eeldth1 eeldth2 eeldth3 eeldth4 eeldth5
 $frame eeldth6 eeldth7 eeldth8 eeldth9 eeldth10
 
 void() swimmonster_start;
-void() eel_pain1;
+void(entity attacker, float damage) eel_pain1;
 
 void() eel_pitch_change =
 {
 	if ( pointcontents ( self.origin ) != CONTENT_WATER )
 	{
-		droptofloor();
+		droptofloor(0,0);
 		T_Damage ( self, world, world, 6);
 		return;
 	}
@@ -173,7 +173,7 @@ void() eel_death =
 	}
 };
 
-void() eel_pain1  =[	$eeldth1, eel_pain2 ] 
+void(entity attacker, float damage) eel_pain1  =[	$eeldth1, eel_pain2 ] 
 { 
 	if (self.pain_finished > time)
 		return;
@@ -191,7 +191,7 @@ void() eel_pain7  =[	$eeldth1, eel_run1 ] {};
 
 /*
 =======================================================
-hydra_spawn
+eel_spawn
 
 (khreathor)
 Monster spawn function, used to trigger spawn an enemy.

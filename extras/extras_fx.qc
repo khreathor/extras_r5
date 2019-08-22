@@ -191,7 +191,7 @@ void() fx_spark =
 	
 	self.think = spark_spawn;
 	
-	if (self.targetname != string_null && !self.spawnflags & START_ON)
+	if (self.targetname != string_null && !(self.spawnflags & START_ON))
 		spark_pause();
 	else
 		spark_start();
@@ -373,7 +373,7 @@ void() fx_drip =
 	
 	self.think = drip_spawn;
 	
-	if (self.targetname != string_null && !self.spawnflags & START_ON)
+	if (self.targetname != string_null && !(self.spawnflags & START_ON))
 		drip_pause();
 	else
 		drip_start();
@@ -483,7 +483,7 @@ void() fx_sound =
 	if (self.cnt < 0) self.cnt = 0;
 
 	// start sound when triggered
-	if (self.targetname != string_null && !self.spawnflags & START_ON) {
+	if (self.targetname != string_null && !(self.spawnflags & START_ON)) {
 		self.use = sound_start;
 	}
 	else {// Start immediately

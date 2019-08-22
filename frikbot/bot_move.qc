@@ -381,7 +381,7 @@ blah
 
 void() frik_movetogoal =
 {
-	local vector way, start, stop, ang;
+	local vector way;
 	local float g;
 
 	if (self.target1 == world)

@@ -36,7 +36,6 @@ walkmove(angle, speed) primitive is all or nothing
 //
 // globals
 //
-float	current_yaw;
 
 //
 // when a monster becomes angry at a player, that monster will be used
@@ -303,8 +302,8 @@ local float	rsnd;
 		sound (self, CHAN_VOICE, "hknight/sight1.wav", 1, ATTN_NORM);
 	else if (self.classname == "monster_tarbaby")
 		sound (self, CHAN_VOICE, "blob/sight1.wav", 1, ATTN_NORM);
-	else if (self.classname == "monster_vomit")
-		sound (self, CHAN_VOICE, "vomitus/v_sight1.wav", 1, ATTN_NORM);
+	//else if (self.classname == "monster_vomit")
+	//	sound (self, CHAN_VOICE, "vomitus/v_sight1.wav", 1, ATTN_NORM);
 	else if (self.classname == "monster_enforcer")
 	{
 		rsnd = rint(random() * 3);			
@@ -481,8 +480,6 @@ The monster is walking it's beat
 */
 void(float dist) ai_walk =
 {
-	local vector		mtemp;
-	
 	vanilla_water_check();
 	
 	movedist = dist;
@@ -716,10 +713,6 @@ The monster has an enemy it is trying to kill
 */
 void(float dist) ai_run =
 {
-	local	vector	delta;
-	local	float	axis;
-	local	float	direct, ang_rint, ang_floor, ang_ceil;
-	
 	movedist = dist;
 	
 	vanilla_water_check();

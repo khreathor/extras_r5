@@ -282,8 +282,6 @@ void() train_ext_playwrongwaysound =
 
 void() train_ext_blocked =
 {
-	local entity cchain;
-	
 	if (time < self.attack_finished) return;
 	
 	self.attack_finished = time + 0.5;
@@ -557,8 +555,6 @@ dprint("\n\n");
 
 void() train_ext_wait =
 {
-	local entity cchain;
-	
 	if (self.think == train_ext_init) return;
 	
 	if (self.state == REVERSE) {

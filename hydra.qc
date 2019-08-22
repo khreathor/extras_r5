@@ -174,7 +174,7 @@ void() hydra_spit_touch =
 			self.owner.aflag = time + 5;
 			other.slowdowntime = time + 3;	//	we slowdown player instead of pausing him (khreathor)
 			//other.pausetime = time + 2;	// player cannot walk and see during this time
-			spawn_touchblood (7);
+			spawn_touchblood (7, FALSE);
 			T_Damage (other, self, self.owner, 7);	// default 7
 			sound (self, CHAN_WEAPON, "hydra/spit_impact_player.wav", 1, ATTN_NORM);
 			///	TODO: Add paralyze effect?

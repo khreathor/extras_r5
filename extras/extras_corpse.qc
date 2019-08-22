@@ -131,11 +131,11 @@ GibIfInAir
 Gib if body is in the air. Test all scenarios;
 =======================================================
 */
-float() GibIfInAir =
+void() GibIfInAir =
 {
 	if (InAir())
 	{
-		dprint("GibIfInAir\n");
+		//dprint("GibIfInAir\n");
 		T_Damage (self, other, other, 22);
 		return;
 	}
@@ -256,7 +256,7 @@ void() corpse_touch =
 			corpse_timer(self,0.5);
 		}
 		
-		if ((!other.flags & FL_ONGROUND))
+		if (!(other.flags & FL_ONGROUND))
 			other.flags = other.flags + FL_ONGROUND;
 
 		/*
@@ -361,8 +361,7 @@ void() become_corpse =
 	self.th_run = SUB_Null;
 	self.th_missile = SUB_Null;
 	self.th_melee = SUB_Null;
-	self.th_pain = SUB_Null;
-	self.touch = SUB_Null;
+	self.th_pain = (void(entity,float))SUB_Null;
 	self.th_die = corpse_die;
 	self.touch = corpse_touch;
 	self.attack_finished = time;

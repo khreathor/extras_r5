@@ -288,7 +288,7 @@ void() switch_toggle =
 		self.state = STATE_UP;
 		self.frame = 0;
 		if (self.mdl) setmodel (self, self.weaponmodel);	
-		if (!self.spawnflags & NOTONRETURN) {
+		if (!(self.spawnflags & NOTONRETURN)) {
 			activator = self.enemy;
 			SUB_UseTargets();
 		}

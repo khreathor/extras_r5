@@ -56,7 +56,7 @@ void() ladder_touch =
 	
 	// Avoid problems if the player is on the top edge (act like an 8 unit step)
 	if (other.origin_z + other.mins_z + 8 >= self.absmax_z) {
-		if ((!other.flags & FL_ONGROUND))
+		if (!(other.flags & FL_ONGROUND))
 			other.flags = other.flags + FL_ONGROUND;
 		return;
 	}
@@ -243,7 +243,7 @@ void() explobsp_explode =
 		remove(self);
 };
 
-void() explobsp_hurt =
+void(entity attacker, float damage) explobsp_hurt =
 {
 	if (self.spawnflags & HEAL) {
 		self.health = self.max_health;
@@ -265,8 +265,6 @@ The explosion occurs at the exact center of the brushes, so keep that in mind.
 */
 void() func_explobsp =
 {
-	local entity spot;
-	
 	self.solid = SOLID_BSP;
 	self.movetype = MOVETYPE_PUSH;
 	
@@ -309,7 +307,7 @@ void() breakaway_break =
 		remove(self);
 };
 
-void() breakaway_hurt =
+void(entity attacker, float damage) breakaway_hurt =
 {
 	if (self.noise1)
 		sound (self, CHAN_VOICE, self.noise1, 1, ATTN_NORM);	
@@ -342,8 +340,6 @@ own for small breakable panels.
 */
 void() func_breakaway =
 {
-	local entity spot;
-	
 	self.solid = SOLID_BSP;
 	self.movetype = MOVETYPE_PUSH;
 	
@@ -356,7 +352,7 @@ void() func_breakaway =
 	
 	self.max_health = self.health;
 	
-	if (!self.spawnflags & BLEED)
+	if (!(self.spawnflags & BLEED))
 		self.nobleed = TRUE;
 
 	self.th_pain = breakaway_hurt;

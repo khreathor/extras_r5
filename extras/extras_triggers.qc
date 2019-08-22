@@ -210,7 +210,7 @@ void() shake_think =
 				plyr.punchangle_x = -1 * (random() + (0.025*self.dmg*d));
 				
 				// push the player around
-				if (plyr.flags & FL_ONGROUND && !self.spawnflags & VIEWONLY) {
+				if (plyr.flags & FL_ONGROUND && !(self.spawnflags & VIEWONLY)) {
 					d = self.dmg*d;
 					plyr.velocity_x = plyr.velocity_x + (random()*d*2 - d);
 					plyr.velocity_y = plyr.velocity_y + (random()*d*2 - d);

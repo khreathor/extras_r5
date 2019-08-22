@@ -1,4 +1,6 @@
-../progs.dat
+E:/GalaxyClient/Games/Quake/extras_r4/progs.dat
+//F:/FTE/extras_r4/progs.dat
+//../progs.dat
 
 defs.qc
 extras/extras_defs.qc   // pOx - additions

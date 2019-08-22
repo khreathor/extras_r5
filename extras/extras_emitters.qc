@@ -118,7 +118,7 @@ void() effector_destroy =
 {
 	if (!self.state) return;// Disabled
 	if (other.classname != "particle") return;
-	if (!other.owner.spawnflags & USEEFFECTORS) return;
+	if (!(other.owner.spawnflags & USEEFFECTORS)) return;
 	if (other.trigger_field == self) return;// Already affected by this trigger
 	
 	if (random() < self.count) {
@@ -132,7 +132,7 @@ void() effector_push =
 {
 	if (!self.state) return;// Disabled
 	if (other.classname != "particle") return;
-	if (!other.owner.spawnflags & USEEFFECTORS) return;
+	if (!(other.owner.spawnflags & USEEFFECTORS)) return;
 	if (other.trigger_field == self) return;// Already affected by this trigger
 	
 	if (random() < self.count) {// push it
@@ -148,7 +148,7 @@ void() effector_gravity =
 {
 	if (!self.state) return;// Disabled
 	if (other.classname != "particle") return;
-	if (!other.owner.spawnflags & USEEFFECTORS) return;
+	if (!(other.owner.spawnflags & USEEFFECTORS)) return;
 	if (other.trigger_field == self) return;// Already affected by this trigger
 	
 	if (random() < self.count) {// modify gravity
@@ -168,18 +168,18 @@ void() effector_turbulence =
 	
 	if (!self.state) return;// Disabled
 	if (other.classname != "particle") return;
-	if (!other.owner.spawnflags & USEEFFECTORS) return;
+	if (!(other.owner.spawnflags & USEEFFECTORS)) return;
 	if (other.trigger_field == self) return;// Already affected by this trigger
 	
 	if (random() < self.count) {// add turbulence
 		
 		if (random() > 0.5) r = -1; else r = 1;
 		
-		if (!self.spawnflags & NOT_X)
+		if (!(self.spawnflags & NOT_X))
 			other.velocity_x = (other.velocity_x - (other.velocity_x*self.cnt)) + r*(random()*self.speed);
-		if (!self.spawnflags & NOT_Y)
+		if (!(self.spawnflags & NOT_Y))
 			other.velocity_y = (other.velocity_y - (other.velocity_y*self.cnt)) + r*(random()*self.speed);
-		if (!self.spawnflags & NOT_Z)
+		if (!(self.spawnflags & NOT_Z))
 			other.velocity_z = (other.velocity_z - (other.velocity_z*self.cnt)) + r*(random()*self.speed);
 			
 		if (self.spawnflags & TANGENTIAL)
@@ -196,7 +196,7 @@ void() effector_attract =
 	
 	if (!self.state) return;// Disabled
 	if (other.classname != "particle") return;
-	if (!other.owner.spawnflags & USEEFFECTORS) return;
+	if (!(other.owner.spawnflags & USEEFFECTORS)) return;
 	if (other.frags) return;// Already failed to catch this one	
 	if (other.teleport_time > time) return;// Timed out
 	
@@ -219,7 +219,7 @@ void() effector_friction =
 {
 	if (!self.state) return;// Disabled
 	if (other.classname != "particle") return;
-	if (!other.owner.spawnflags & USEEFFECTORS) return;
+	if (!(other.owner.spawnflags & USEEFFECTORS)) return;
 	if (other.frags) return;// Already failed to catch this one	
 	if (other.teleport_time > time) return;// Timed out
 	
@@ -257,7 +257,7 @@ void() t_effector_friction =
 	self.speed = self.speed/100.0;
 	if (self.speed > 1.0) self.speed = 1.0;
 	
-	if (self.targetname != string_null && !self.spawnflags & START_ON)
+	if (self.targetname != string_null && !(self.spawnflags & START_ON))
 		self.state = FALSE;// off
 	else
 		self.state = TRUE;// on
@@ -302,7 +302,7 @@ void() t_effector_attract =
 	self.dest_y = (self.mins_y + self.maxs_y)*0.5;
 	self.dest_z = (self.mins_z + self.maxs_z)*0.5;
 	
-	if (self.targetname != string_null && !self.spawnflags & START_ON)
+	if (self.targetname != string_null && !(self.spawnflags & START_ON))
 		self.state = FALSE;// off
 	else
 		self.state = TRUE;// on
@@ -347,7 +347,7 @@ void() t_effector_trubulence =
 	
 	self.speed = fabs(self.speed);
 	
-	if (self.targetname != string_null && !self.spawnflags & START_ON)
+	if (self.targetname != string_null && !(self.spawnflags & START_ON))
 		self.state = FALSE;// off
 	else
 		self.state = TRUE;// on
@@ -378,7 +378,7 @@ void() t_effector_gravity =
 	
 	self.count = self.count*0.01;
 	
-	if (self.targetname != string_null && !self.spawnflags & START_ON)
+	if (self.targetname != string_null && !(self.spawnflags & START_ON))
 		self.state = FALSE;// off
 	else
 		self.state = TRUE;// on
@@ -416,7 +416,7 @@ void() t_effector_push =
 	
 	// NOTE: mangle of '0 0 0' is ok (let gravity take over)
 	
-	if (self.targetname != string_null && !self.spawnflags & START_ON)
+	if (self.targetname != string_null && !(self.spawnflags & START_ON))
 		self.state = FALSE;// off
 	else
 		self.state = TRUE;// on
@@ -444,7 +444,7 @@ void() t_effector_destroy =
 	
 	self.count = self.count*0.01;
 	
-	if (self.targetname != string_null && !self.spawnflags & START_ON)
+	if (self.targetname != string_null && !(self.spawnflags & START_ON))
 		self.state = FALSE;// off
 	else
 		self.state = TRUE;// on
@@ -636,7 +636,7 @@ void() emitter_pause =
 
 void() emitter_emit =
 {
-	local entity p, ent;
+	local entity p;
 	local vector dir;
 	
 	if (self.noise != string_null && self.count == 1)// Play emitter noise
@@ -753,7 +753,7 @@ void() emitter_find =
 	
 	// Start it up
 	self.think = emitter_emit;
-	if (self.targetname != string_null && !self.spawnflags & START_ON)
+	if (self.targetname != string_null && !(self.spawnflags & START_ON))
 		emitter_pause();
 	else
 		emitter_start();

@@ -68,8 +68,7 @@ void() 	liquid_movetopos1;
 void() CheckFuncWaterDeath =
 {
 	local entity ent;
-	local vector spot, rgb;
-	local float	 i;
+	local vector spot;
 	
 	spot = self.origin + self.view_ofs;
 	ent = find(world, classname, "fliquid");
@@ -201,8 +200,6 @@ Drown function for monsters;
 */
 void(entity entToDrown) liquid_drown =
 {
-	local float damage;
-	
 	if(other.flags & FL_SWIM)
 		return;
 	
@@ -286,7 +283,7 @@ void() liquid_touch =
 {
 	local float test;
 	local vector test_vec;
-	local float r,g,b,i,c;
+	local float c;
 	
 	if (!(other.flags & FL_CLIENT)) {
 		// Handle some special cases (always set think1 as death function!)
